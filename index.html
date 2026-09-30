@@ -66,7 +66,7 @@
   .tab-icon {
     width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
-  .tab-icon svg, .tab-icon img { width: 100%; height: 100%; object-fit: contain; }
+  .tab-icon svg { width: 100%; height: 100%; }
 
   .summary {
     background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
@@ -178,17 +178,16 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // Simple Icons CDN 기반 원본 공식 브랜드 로고
+  // 외부 네트워크 없이 브라우저 자체에서 보장되는 벡터 SVG 로고
   const LOGOS = {
     ALL: `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>`,
-    NETFLIX: `<img src="https://cdn.simpleicons.org/netflix/E50914" alt="Netflix">`,
-    DISNEY: `<img src="https://cdn.simpleicons.org/disneyplus/113CCF" alt="Disney+">`,
-    TVING: `<img src="https://cdn.simpleicons.org/tving/FF153C" alt="TVING">`,
-    WATCHA: `<img src="https://cdn.simpleicons.org/watcha/FF0558" alt="WATCHA">`,
+    NETFLIX: `<svg viewBox="0 0 24 24" fill="#E50914"><path d="M5.398 0v24h4.192V11.213l5.008 12.787h4.004V0h-4.192v12.787L9.402 0z"/></svg>`,
+    DISNEY: `<svg viewBox="0 0 24 24" fill="#113CCF"><path d="M4.5 13.5c1.2-2.3 3.8-4.5 7.5-4.5s6.3 2.2 7.5 4.5M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm-2 11.5v-5l4.5 2.5z"/></svg>`,
+    TVING: `<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#FF153C"/><text x="12" y="16" fill="#FFF" font-weight="900" font-size="12" text-anchor="middle" font-family="sans-serif">T</text></svg>`,
+    WATCHA: `<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#FF0558"/><text x="12" y="16" fill="#FFF" font-weight="900" font-size="12" text-anchor="middle" font-family="sans-serif">W</text></svg>`,
     ETC: `<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg>`
   };
 
-  // 티빙1이 티빙2보다 먼저 오도록 순서 조정
   const OTT_GROUPS = [
     { id: 'all', name: '전체', logo: LOGOS.ALL, profiles: [] },
     { id: 'nf1', name: '넷플1', logo: LOGOS.NETFLIX, profiles: ['크라피카', '곤', '키르아'] },
