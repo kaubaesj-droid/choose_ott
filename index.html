@@ -216,10 +216,8 @@
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
     if (theme === 'dark') {
-      themeIcon.textContent = '☀️';
       themeLabel.textContent = '주간 모드';
     } else {
-      themeIcon.textContent = '🌙';
       themeLabel.textContent = '야간 모드';
     }
   }
