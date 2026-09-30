@@ -49,7 +49,7 @@
   h1 { font-size: 1.5rem; margin: 0 0 4px; font-weight: 700; letter-spacing: -0.01em; }
   .sub { margin: 0 0 16px; color: var(--muted); font-size: .95rem; }
 
-  /* OTT 탭 로고 스타일 */
+  /* OTT 탭 스타일 */
   .tabs {
     display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px;
     -webkit-overflow-scrolling: touch; scrollbar-width: none;
@@ -66,7 +66,7 @@
   .tab-icon {
     width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
-  .tab-icon svg { width: 100%; height: 100%; fill: currentColor; }
+  .tab-icon svg, .tab-icon img { width: 100%; height: 100%; object-fit: contain; }
 
   .summary {
     background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
@@ -149,7 +149,6 @@
   <h1>OTT 공유 현황</h1>
   <p class="sub">OTT를 선택하고 프로필을 눌러 시간과 이름을 입력하면 사용중으로 바뀝니다.</p>
 
-  <!-- OTT 서비스 선택 탭 -->
   <div class="tabs" id="tabs" role="tablist" aria-label="OTT 서비스 선택"></div>
 
   <div class="summary" id="summary"></div>
@@ -179,29 +178,28 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // OTT별 아이콘 SVG 정의
+  // Simple Icons CDN 기반 원본 공식 브랜드 로고
   const LOGOS = {
-    ALL: `<svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>`,
-    NETFLIX: `<svg viewBox="0 0 24 24" fill="#E50914"><path d="M5.398 0v24h4.192V11.213l5.008 12.787h4.004V0h-4.192v12.787L9.402 0z"/></svg>`,
-    DISNEY: `<svg viewBox="0 0 24 24" fill="#113CCF"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-1 14.5v-9l7.5 4.5z"/></svg>`,
-    TVING: `<svg viewBox="0 0 24 24" fill="#FF153C"><circle cx="6" cy="12" r="4"/><circle cx="18" cy="12" r="4"/><path d="M12 6a6 6 0 0 0-6 6h12a6 6 0 0 0-6-6z"/></svg>`,
-    WATCHA: `<svg viewBox="0 0 24 24" fill="#FF0558"><path d="M2 5h20v4H2zm0 5h20v4H2zm0 5h20v4H2z"/></svg>`,
-    ETC: `<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>`
+    ALL: `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>`,
+    NETFLIX: `<img src="https://cdn.simpleicons.org/netflix/E50914" alt="Netflix">`,
+    DISNEY: `<img src="https://cdn.simpleicons.org/disneyplus/113CCF" alt="Disney+">`,
+    TVING: `<img src="https://cdn.simpleicons.org/tving/FF153C" alt="TVING">`,
+    WATCHA: `<img src="https://cdn.simpleicons.org/watcha/FF0558" alt="WATCHA">`,
+    ETC: `<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg>`
   };
 
-  // 요청하신 프로필 분류에 맞춘 OTT 그룹 정의
+  // 티빙1이 티빙2보다 먼저 오도록 순서 조정
   const OTT_GROUPS = [
     { id: 'all', name: '전체', logo: LOGOS.ALL, profiles: [] },
     { id: 'nf1', name: '넷플1', logo: LOGOS.NETFLIX, profiles: ['크라피카', '곤', '키르아'] },
     { id: 'nf2', name: '넷플2', logo: LOGOS.NETFLIX, profiles: ['옐로우', '레오리오'] },
     { id: 'dp', name: '디플', logo: LOGOS.DISNEY, profiles: ['닉', '올라프', '베이맥스', '게리'] },
-    { id: 'tv2', name: '티빙2', logo: LOGOS.TVING, profiles: ['SSG', '기아', '두산', '키움'] },
     { id: 'tv1', name: '티빙1', logo: LOGOS.TVING, profiles: ['한화', 'LG', '롯데', '삼성'] },
+    { id: 'tv2', name: '티빙2', logo: LOGOS.TVING, profiles: ['SSG', '기아', '두산', '키움'] },
     { id: 'wc', name: '왓챠', logo: LOGOS.WATCHA, profiles: ['루미', '진우', '조이', '미라'] },
     { id: 'etc', name: '기타', logo: LOGOS.ETC, profiles: ['개리', '고양이', '다람쥐', '덴지', '레제', '마키마', '머드', '부엉이', '척', '파워', '판다'] }
   ];
 
-  // 전체 프로필 동적 구성
   const ALL_PROFILES = [];
   OTT_GROUPS.forEach(g => {
     if (g.id !== 'all') {
