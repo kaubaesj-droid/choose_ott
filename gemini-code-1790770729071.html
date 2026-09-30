@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OTT 공유 현황</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    --bg: #eceef3;
+    --surface: #ffffff;
+    --ink: #171a24;
+    --muted: #666d80;
+    --line: #d5d9e3;
+    --free: #12805c;
+    --free-bg: #e2f4ec;
+    --busy: #c2381f;
+    --busy-bg: #fbe9e4;
+    --accent: #2b4de0;
+    --accent-ink: #ffffff;
+    --shadow: 0 1px 0 rgba(23,26,36,.06);
+    --overlay: rgba(23,26,36,.5);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12141b; --surface: #1c1f29; --ink: #eceef5; --muted: #9aa1b5; --line: #2f3443;
+      --free: #4fd1a1; --free-bg: #173328; --busy: #ff8a70; --busy-bg: #3a2019;
+      --accent: #7f97ff; --accent-ink: #10131d; --shadow: none; --overlay: rgba(0,0,0,.65);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12141b; --surface: #1c1f29; --ink: #eceef5; --muted: #9aa1b5; --line: #2f3443;
+    --free: #4fd1a1; --free-bg: #173328; --busy: #ff8a70; --busy-bg: #3a2019;
+    --accent: #7f97ff; --accent-ink: #10131d; --shadow: none; --overlay: rgba(0,0,0,.65);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    line-height: 1.5; -webkit-text-size-adjust: 100%;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; font-weight: 700; letter-spacing: -0.01em; }
+  .sub { margin: 0 0 20px; color: var(--muted); font-size: .95rem; }
+
+  .summary {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 16px; font-size: .95rem; box-shadow: var(--shadow);
+  }
+  .summary b { font-weight: 600; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .card {
+    text-align: left; font: inherit; color: inherit; cursor: pointer; width: 100%;
+    background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px;
+    padding: 14px; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow);
+    transition: border-color .15s, transform .1s;
+  }
+  .card:hover { border-color: var(--ink); }
+  .card:active { transform: scale(.985); }
+  .card .name { font-size: 1.1rem; font-weight: 700; }
+  .badge {
+    align-self: flex-start; font-size: .8rem; font-weight: 600; padding: 2px 10px; border-radius: 999px;
+  }
+  .card.free .badge { background: var(--free-bg); color: var(--free); }
+  .card.busy .badge { background: var(--busy-bg); color: var(--busy); }
+  .card.busy { border-color: var(--busy); }
+  .who { font-weight: 600; }
+  .meta { color: var(--muted); font-size: .88rem; }
+  .bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; margin-top: 4px; }
+  .bar > i { display: block; height: 100%; background: var(--free); border-radius: 5px; transition: width 1s linear, background-color .4s; }
+  .bar.mid > i { background: #d99a1c; }
+  .bar.low > i { background: var(--busy); }
+  @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+
+  .overlay {
+    position: fixed; inset: 0; background: var(--overlay); display: none;
+    align-items: flex-end; justify-content: center; z-index: 10;
+  }
+  .overlay.open { display: flex; }
+  .sheet {
+    background: var(--surface); width: 100%; max-width: 480px; border-radius: 18px 18px 0 0;
+    padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px)); max-height: 92vh; overflow-y: auto;
+  }
+  @media (min-width: 600px) {
+    .overlay { align-items: center; }
+    .sheet { border-radius: 18px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .overlay.open .sheet { animation: rise .18s ease-out; }
+    @keyframes rise { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+  }
+  .sheet h2 { margin: 0 0 2px; font-size: 1.2rem; }
+  .sheet .hint { margin: 0 0 16px; color: var(--muted); font-size: .9rem; }
+  .label { display: block; font-weight: 600; margin: 14px 0 8px; font-size: .95rem; }
+  .chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .chip {
+    border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px;
+    padding: 10px 0; font: inherit; font-weight: 500; cursor: pointer;
+  }
+  .chip[aria-checked="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  input[type="text"] {
+    width: 100%; font: inherit; padding: 12px; border-radius: 10px; border: 1.5px solid var(--line);
+    background: var(--bg); color: var(--ink);
+  }
+  .actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn {
+    flex: 1; font: inherit; font-weight: 600; padding: 13px; border-radius: 10px; cursor: pointer;
+    border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); flex: 2; }
+  .btn.danger { background: var(--busy); border-color: var(--busy); color: #fff; flex: 2; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .info { background: var(--busy-bg); color: var(--ink); border-radius: 10px; padding: 12px 14px; }
+  .info p { margin: 2px 0; }
+  .note { margin-top: 24px; color: var(--muted); font-size: .82rem; }
+
+  :where(button, input):focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>OTT 공유 현황</h1>
+  <p class="sub">프로필을 누르고 시간과 이름을 입력하면 사용중으로 바뀝니다.</p>
+
+  <div class="summary" id="summary"></div>
+  <div class="grid" id="grid"></div>
+  <p class="note">실시간 데이터베이스와 연결되어 모든 사용자에게 공통으로 공유됩니다.</p>
+</main>
+
+<div class="overlay" id="overlay" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" id="sheet"></div>
+</div>
+
+<!-- Firebase SDK (ESM 모듈) 불러오기 및 설정 연동 -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  // 요청하신 firebaseConfig 설정 적용
+  const firebaseConfig = {
+    apiKey: "AIzaSyAHXocwDHnG-U04R37_1sxmVuZi5nDtxV4",
+    authDomain: "ott-service-abcc4.firebaseapp.com",
+    databaseURL: "https://ott-service-abcc4-default-rtdb.firebaseio.com",
+    projectId: "ott-service-abcc4",
+    storageBucket: "ott-service-abcc4.firebasestorage.app",
+    messagingSenderId: "320511435378",
+    appId: "1:320511435378:web:d99f89dea5324c658618eb",
+    measurementId: "G-SF2M0TX2WT"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const PROFILES = ['개리', '고양이', '곤', '기아', '닉', '다람쥐', '덴지', '두산', '레오리오', '레제', '롯데', '루미', '마키마', '머드', '미라', '베이맥스', '부엉이', '옐로우', '올라프', '조이', '진우', '척', '크라피카', '키르아', '키움', '파워', '판다', '한화', 'LG', 'SSG'];
+  const DURATIONS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4];
+  const NAME_KEY = 'ott-board-last-name';
+
+  let state = {};
+  let hours = null;
+
+  // Realtime Database 실시간 데이터 수신
+  const stateRef = ref(db, 'ott_state');
+  onValue(stateRef, (snapshot) => {
+    state = snapshot.val() || {};
+    render();
+  });
+
+  function saveStateToDB() {
+    set(ref(db, 'ott_state'), state);
+  }
+
+  function lastName() {
+    try { return localStorage.getItem(NAME_KEY) || ''; } catch (e) { return ''; }
+  }
+  function saveName(n) {
+    try { localStorage.setItem(NAME_KEY, n); } catch (e) {}
+  }
+
+  function usage(p) {
+    var u = state[p];
+    if (u && u.end > Date.now()) return u;
+    return null;
+  }
+  function purge() {
+    var changed = false;
+    Object.keys(state).forEach(function (k) {
+      if (state[k].end <= Date.now()) { delete state[k]; changed = true; }
+    });
+    if (changed) saveStateToDB();
+  }
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function clock(ms) { var d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function remain(ms) {
+    var m = Math.max(1, Math.ceil((ms - Date.now()) / 60000));
+    var h = Math.floor(m / 60), r = m % 60;
+    if (h && r) return h + '시간 ' + r + '분';
+    if (h) return h + '시간';
+    return r + '분';
+  }
+  function hoursLabel(h) {
+    if (h === Math.floor(h)) return h + '시간';
+    return h < 1 ? '30분' : Math.floor(h) + '시간 30분';
+  }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function paint(u, meta, bar, fill) {
+    var pct = Math.max(0, Math.min(100, ((u.end - Date.now()) / (u.end - u.start)) * 100));
+    fill.style.width = pct + '%';
+    bar.className = 'bar live-bar' + (pct <= 15 ? ' low' : pct <= 40 ? ' mid' : '');
+    meta.textContent = clock(u.end) + ' 종료 · ' + remain(u.end) + ' 남음';
+  }
+  function tick() {
+    var expired = false;
+    Array.prototype.forEach.call(document.querySelectorAll('.card.busy'), function (card) {
+      var p = card.getAttribute('data-p');
+      var u = usage(p);
+      if (!u) { expired = true; return; }
+      paint(u, card.querySelector('.live-meta'), card.querySelector('.live-bar'), card.querySelector('.live-bar > i'));
+    });
+    if (expired) render();
+  }
+
+  function render() {
+    purge();
+    var freeList = PROFILES.filter(function (p) { return !usage(p); });
+    var sum = document.getElementById('summary');
+    sum.textContent = '';
+    if (freeList.length) {
+      sum.appendChild(document.createTextNode('지금 사용 가능한 프로필 ' + freeList.length + '개: '));
+      sum.appendChild(el('b', null, freeList.join(', ')));
+    } else {
+      var soonest = Math.min.apply(null, PROFILES.map(function (p) { return usage(p).end; }));
+      sum.appendChild(document.createTextNode('사용 가능한 프로필이 없습니다. 가장 빨리 사용할 수 있는 시각은 '));
+      sum.appendChild(el('b', null, clock(soonest)));
+      sum.appendChild(document.createTextNode('입니다.'));
+    }
+
+    var grid = document.getElementById('grid');
+    grid.textContent = '';
+    PROFILES.forEach(function (p) {
+      var u = usage(p);
+      var card = el('button', 'card ' + (u ? 'busy' : 'free'));
+      card.appendChild(el('span', 'name', p));
+      card.appendChild(el('span', 'badge', u ? '사용중' : '사용 가능'));
+      if (u) {
+        card.appendChild(el('span', 'who', u.user));
+        var meta = el('span', 'meta', clock(u.end) + ' 종료 · ' + remain(u.end) + ' 남음');
+        meta.className = 'meta live-meta';
+        card.appendChild(meta);
+        var bar = el('span', 'bar live-bar'); var fill = document.createElement('i');
+        bar.appendChild(fill); card.appendChild(bar);
+        card.setAttribute('data-p', p);
+        paint(u, meta, bar, fill);
+      } else {
+        card.appendChild(el('span', 'meta', '눌러서 사용 시간 선택'));
+      }
+      card.addEventListener('click', function () { openSheet(p); });
+      grid.appendChild(card);
+    });
+  }
+
+  function openSheet(p) {
+    hours = null;
+    var sheet = document.getElementById('sheet');
+    sheet.textContent = '';
+    var u = usage(p);
+
+    var title = el('h2', null, p);
+    title.id = 'dlgTitle';
+    sheet.appendChild(title);
+
+    if (u) {
+      sheet.appendChild(el('p', 'hint', '이 프로필은 지금 사용중입니다.'));
+      var info = el('div', 'info');
+      info.appendChild(el('p', null, '사용자: ' + u.user));
+      info.appendChild(el('p', null, clock(u.end) + ' 종료 · ' + remain(u.end) + ' 남음'));
+      sheet.appendChild(info);
+      var acts = el('div', 'actions');
+      var close = el('button', 'btn', '닫기');
+      close.addEventListener('click', closeSheet);
+      var end = el('button', 'btn danger', '사용 종료');
+      end.addEventListener('click', function () {
+        delete state[p];
+        saveStateToDB();
+        closeSheet();
+      });
+      acts.appendChild(close); acts.appendChild(end);
+      sheet.appendChild(acts);
+    } else {
+      sheet.appendChild(el('p', 'hint', '사용할 시간과 이름을 입력하세요.'));
+      sheet.appendChild(el('span', 'label', '사용 시간'));
+      var chips = el('div', 'chips');
+      chips.setAttribute('role', 'radiogroup');
+      chips.setAttribute('aria-label', '사용 시간');
+      DURATIONS.forEach(function (h) {
+        var c = el('button', 'chip', hoursLabel(h));
+        c.setAttribute('role', 'radio');
+        c.setAttribute('aria-checked', 'false');
+        c.addEventListener('click', function () {
+          hours = h;
+          Array.prototype.forEach.call(chips.children, function (x) { x.setAttribute('aria-checked', 'false'); });
+          c.setAttribute('aria-checked', 'true');
+          check();
+        });
+        chips.appendChild(c);
+      });
+      sheet.appendChild(chips);
+
+      var lab = el('label', 'label', '이름'); lab.setAttribute('for', 'nameInput');
+      sheet.appendChild(lab);
+      var input = document.createElement('input');
+      input.type = 'text'; input.id = 'nameInput'; input.maxLength = 20;
+      input.placeholder = '이름을 입력하세요'; input.autocomplete = 'off';
+      input.value = lastName();
+      sheet.appendChild(input);
+
+      var acts2 = el('div', 'actions');
+      var cancel = el('button', 'btn', '취소');
+      cancel.addEventListener('click', closeSheet);
+      var ok = el('button', 'btn primary', '입력');
+      ok.disabled = true;
+      acts2.appendChild(cancel); acts2.appendChild(ok);
+      sheet.appendChild(acts2);
+
+      function check() { ok.disabled = !(hours && input.value.trim()); }
+      function submit() {
+        var name = input.value.trim();
+        if (!hours || !name) return;
+        var now = Date.now();
+        state[p] = { user: name, start: now, end: now + hours * 3600000 };
+        saveStateToDB();
+        saveName(name);
+        closeSheet();
+      }
+      input.addEventListener('input', check);
+      input.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+      ok.addEventListener('click', submit);
+      check();
+    }
+
+    var ov = document.getElementById('overlay');
+    ov.classList.add('open'); ov.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeSheet() {
+    var ov = document.getElementById('overlay');
+    ov.classList.remove('open'); ov.setAttribute('aria-hidden', 'true');
+  }
+
+  document.getElementById('overlay').addEventListener('click', function (e) {
+    if (e.target === this) closeSheet();
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheet(); });
+
+  setInterval(tick, 1000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) render(); });
+</script>
+</body>
+</html>
