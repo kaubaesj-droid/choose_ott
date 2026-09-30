@@ -49,16 +49,6 @@
   h1 { font-size: 1.5rem; margin: 0 0 4px; font-weight: 700; letter-spacing: -0.01em; }
   .sub { margin: 0 0 20px; color: var(--muted); font-size: .95rem; }
 
-  .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; }
-  .tab {
-    flex: 0 0 auto; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
-    border-radius: 999px; padding: 8px 14px; font: inherit; font-weight: 500; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 8px;
-  }
-  .tab[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: var(--bg); }
-  .dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
-  .count { font-size: .8rem; opacity: .75; }
-
   .summary {
     background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
     padding: 12px 14px; margin-bottom: 16px; font-size: .95rem; box-shadow: var(--shadow);
@@ -141,33 +131,51 @@
 
   <div class="summary" id="summary"></div>
   <div class="grid" id="grid"></div>
-  <p class="note">이 기기의 브라우저에만 저장됩니다. 다른 사람 화면에는 보이지 않습니다.</p>
+  <p class="note">실시간 데이터베이스와 연결되어 모든 사용자에게 공통으로 공유됩니다.</p>
 </main>
 
 <div class="overlay" id="overlay" aria-hidden="true">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" id="sheet"></div>
 </div>
 
-<script>
-(function () {
-  // 프로필 목록: 여기에서 이름을 바꾸거나 추가하면 됩니다.
-  var PROFILES = ['개리', '고양이', '곤', '기아', '닉', '다람쥐', '덴지', '두산', '레오리오', '레제', '롯데', '루미', '마키마', '머드', '미라', '베이맥스', '부엉이', '옐로우', '올라프', '조이', '진우', '척', '크라피카', '키르아', '키움', '파워', '판다', '한화', 'LG', 'SSG'];
-  var DURATIONS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4];
-  var STORE_KEY = 'ott-board-v2';
-  var NAME_KEY = 'ott-board-last-name';
+<!-- Firebase SDK (ESM 모듈) 불러오기 및 설정 연동 -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  var state = {};        // { "프로필": { user, start, end } }
-  var hours = null;
+  // 요청하신 firebaseConfig 설정 적용
+  const firebaseConfig = {
+    apiKey: "AIzaSyAHXocwDHnG-U04R37_1sxmVuZi5nDtxV4",
+    authDomain: "ott-service-abcc4.firebaseapp.com",
+    databaseURL: "https://ott-service-abcc4-default-rtdb.firebaseio.com",
+    projectId: "ott-service-abcc4",
+    storageBucket: "ott-service-abcc4.firebasestorage.app",
+    messagingSenderId: "320511435378",
+    appId: "1:320511435378:web:d99f89dea5324c658618eb",
+    measurementId: "G-SF2M0TX2WT"
+  };
 
-  function load() {
-    try {
-      var raw = localStorage.getItem(STORE_KEY);
-      state = raw ? JSON.parse(raw) : {};
-    } catch (e) { state = {}; }
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const PROFILES = ['개리', '고양이', '곤', '기아', '닉', '다람쥐', '덴지', '두산', '레오리오', '레제', '롯데', '루미', '마키마', '머드', '미라', '베이맥스', '부엉이', '옐로우', '올라프', '조이', '진우', '척', '크라피카', '키르아', '키움', '파워', '판다', '한화', 'LG', 'SSG'];
+  const DURATIONS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4];
+  const NAME_KEY = 'ott-board-last-name';
+
+  let state = {};
+  let hours = null;
+
+  // Realtime Database 실시간 데이터 수신
+  const stateRef = ref(db, 'ott_state');
+  onValue(stateRef, (snapshot) => {
+    state = snapshot.val() || {};
+    render();
+  });
+
+  function saveStateToDB() {
+    set(ref(db, 'ott_state'), state);
   }
-  function save() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
-  }
+
   function lastName() {
     try { return localStorage.getItem(NAME_KEY) || ''; } catch (e) { return ''; }
   }
@@ -185,7 +193,7 @@
     Object.keys(state).forEach(function (k) {
       if (state[k].end <= Date.now()) { delete state[k]; changed = true; }
     });
-    if (changed) save();
+    if (changed) saveStateToDB();
   }
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
   function clock(ms) { var d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
@@ -284,7 +292,9 @@
       close.addEventListener('click', closeSheet);
       var end = el('button', 'btn danger', '사용 종료');
       end.addEventListener('click', function () {
-        delete state[p]; save(); closeSheet(); render();
+        delete state[p];
+        saveStateToDB();
+        closeSheet();
       });
       acts.appendChild(close); acts.appendChild(end);
       sheet.appendChild(acts);
@@ -330,7 +340,9 @@
         if (!hours || !name) return;
         var now = Date.now();
         state[p] = { user: name, start: now, end: now + hours * 3600000 };
-        save(); saveName(name); closeSheet(); render();
+        saveStateToDB();
+        saveName(name);
+        closeSheet();
       }
       input.addEventListener('input', check);
       input.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
@@ -352,10 +364,8 @@
   });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheet(); });
 
-  load(); render();
   setInterval(tick, 1000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) render(); });
-})();
 </script>
 </body>
 </html>
