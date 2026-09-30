@@ -159,9 +159,20 @@
   const PROFILES = ['개리', '고양이', '곤', '기아', '닉', '다람쥐', '덴지', '두산', '레오리오', '레제', '롯데', '루미', '마키마', '머드', '미라', '베이맥스', '부엉이', '옐로우', '올라프', '조이', '진우', '척', '크라피카', '키르아', '키움', '파워', '판다', '한화', 'LG', 'SSG'];
   const DURATIONS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4];
   const NAME_KEY = 'ott-board-last-name';
+  const SESSION_KEY = 'ott-board-device-session';
 
   let state = {};
   let hours = null;
+
+  // 기기 고유 식별자 생성/가져오기
+  function getDeviceSessionId() {
+    let sid = localStorage.getItem(SESSION_KEY);
+    if (!sid) {
+      sid = 'dev_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+      localStorage.setItem(SESSION_KEY, sid);
+    }
+    return sid;
+  }
 
   const stateRef = ref(db, 'ott_state');
   onValue(stateRef, (snapshot) => {
@@ -279,21 +290,30 @@
     sheet.appendChild(title);
 
     if (u) {
-      sheet.appendChild(el('p', 'hint', '이 프로필은 지금 사용중입니다.'));
+      var isOwner = u.deviceId === getDeviceSessionId();
+      
+      sheet.appendChild(el('p', 'hint', isOwner ? '내가 사용 중인 프로필입니다.' : '다른 사용자가 사용 중인 프로필입니다.'));
       var info = el('div', 'info');
       info.appendChild(el('p', null, '사용자: ' + u.user));
       info.appendChild(el('p', null, clock(u.end) + ' 종료 · ' + remain(u.end) + ' 남음'));
       sheet.appendChild(info);
+      
       var acts = el('div', 'actions');
       var close = el('button', 'btn', '닫기');
       close.addEventListener('click', closeSheet);
-      var end = el('button', 'btn danger', '사용 종료');
-      end.addEventListener('click', function () {
-        delete state[p];
-        saveStateToDB();
-        closeSheet();
-      });
-      acts.appendChild(close); acts.appendChild(end);
+      acts.appendChild(close);
+
+      // 내 기기에서 등록한 프로필일 때만 [사용 종료] 버튼 제공
+      if (isOwner) {
+        var end = el('button', 'btn danger', '사용 종료');
+        end.addEventListener('click', function () {
+          delete state[p];
+          saveStateToDB();
+          closeSheet();
+        });
+        acts.appendChild(end);
+      }
+      
       sheet.appendChild(acts);
     } else {
       sheet.appendChild(el('p', 'hint', '사용할 시간과 이름을 입력하세요.'));
@@ -336,7 +356,12 @@
         var name = input.value.trim();
         if (!hours || !name) return;
         var now = Date.now();
-        state[p] = { user: name, start: now, end: now + hours * 3600000 };
+        state[p] = { 
+          user: name, 
+          start: now, 
+          end: now + hours * 3600000,
+          deviceId: getDeviceSessionId() // 등록 기기의 고유 식별자 추가
+        };
         saveStateToDB();
         saveName(name);
         closeSheet();
