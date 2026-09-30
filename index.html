@@ -83,8 +83,11 @@
   .card.busy { border-color: var(--busy); }
   .who { font-weight: 600; }
   .meta { color: var(--muted); font-size: .88rem; }
-  .bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; margin-top: 2px; }
-  .bar > i { display: block; height: 100%; background: var(--busy); border-radius: 3px; }
+  .bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; margin-top: 4px; }
+  .bar > i { display: block; height: 100%; background: var(--free); border-radius: 5px; transition: width 1s linear, background-color .4s; }
+  .bar.mid > i { background: #d99a1c; }
+  .bar.low > i { background: var(--busy); }
+  @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
 
   .overlay {
     position: fixed; inset: 0; background: var(--overlay); display: none;
@@ -204,6 +207,23 @@
     return e;
   }
 
+  function paint(u, meta, bar, fill) {
+    var pct = Math.max(0, Math.min(100, ((u.end - Date.now()) / (u.end - u.start)) * 100));
+    fill.style.width = pct + '%';
+    bar.className = 'bar live-bar' + (pct <= 15 ? ' low' : pct <= 40 ? ' mid' : '');
+    meta.textContent = clock(u.end) + ' 종료 · ' + remain(u.end) + ' 남음';
+  }
+  function tick() {
+    var expired = false;
+    Array.prototype.forEach.call(document.querySelectorAll('.card.busy'), function (card) {
+      var p = card.getAttribute('data-p');
+      var u = usage(p);
+      if (!u) { expired = true; return; }
+      paint(u, card.querySelector('.live-meta'), card.querySelector('.live-bar'), card.querySelector('.live-bar > i'));
+    });
+    if (expired) render();
+  }
+
   function render() {
     purge();
     var freeList = PROFILES.filter(function (p) { return !usage(p); });
@@ -228,11 +248,13 @@
       card.appendChild(el('span', 'badge', u ? '사용중' : '비어 있음'));
       if (u) {
         card.appendChild(el('span', 'who', u.user));
-        card.appendChild(el('span', 'meta', clock(u.end) + ' 종료 · ' + remain(u.end) + ' 남음'));
-        var bar = el('span', 'bar'); var fill = document.createElement('i');
-        var pct = Math.max(0, Math.min(100, ((u.end - Date.now()) / (u.end - u.start)) * 100));
-        fill.style.width = pct + '%';
+        var meta = el('span', 'meta', clock(u.end) + ' 종료 · ' + remain(u.end) + ' 남음');
+        meta.className = 'meta live-meta';
+        card.appendChild(meta);
+        var bar = el('span', 'bar live-bar'); var fill = document.createElement('i');
         bar.appendChild(fill); card.appendChild(bar);
+        card.setAttribute('data-p', p);
+        paint(u, meta, bar, fill);
       } else {
         card.appendChild(el('span', 'meta', '눌러서 사용 시간 선택'));
       }
@@ -331,10 +353,8 @@
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheet(); });
 
   load(); render();
-  setInterval(function () { if (!document.getElementById('overlay').classList.contains('open')) render(); }, 30000);
-  document.addEventListener('visibilitychange', function () {
-    if (!document.hidden && !document.getElementById('overlay').classList.contains('open')) render();
-  });
+  setInterval(tick, 1000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) render(); });
 })();
 </script>
 </body>
