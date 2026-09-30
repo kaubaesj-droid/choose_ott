@@ -125,7 +125,7 @@
     padding: 10px 0; font: inherit; font-weight: 500; cursor: pointer;
   }
   .chip[aria-checked="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-  input[type="text"], input[type="password"] {
+  input[type="text"] {
     width: 100%; font: inherit; padding: 12px; border-radius: 10px; border: 1.5px solid var(--line);
     background: var(--bg); color: var(--ink);
   }
@@ -178,7 +178,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // 외부 네트워크 없이 브라우저 자체에서 보장되는 벡터 SVG 로고
   const LOGOS = {
     ALL: `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>`,
     NETFLIX: `<svg viewBox="0 0 24 24" fill="#E50914"><path d="M5.398 0v24h4.192V11.213l5.008 12.787h4.004V0h-4.192v12.787L9.402 0z"/></svg>`,
@@ -218,10 +217,21 @@
 
   const DURATIONS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4];
   const NAME_KEY = 'ott-board-last-name';
+  const SESSION_KEY = 'ott-board-device-session';
 
   let currentCategory = 'all';
   let state = {};
   let hours = null;
+
+  // 1. 기기 고유 식별자 생성/가져오기 (자동 세션)
+  function getDeviceSessionId() {
+    let sid = localStorage.getItem(SESSION_KEY);
+    if (!sid) {
+      sid = 'dev_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+      localStorage.setItem(SESSION_KEY, sid);
+    }
+    return sid;
+  }
 
   const stateRef = ref(db, 'ott_state');
   onValue(stateRef, (snapshot) => {
@@ -372,48 +382,34 @@
     sheet.appendChild(title);
 
     if (u) {
-      sheet.appendChild(el('p', 'hint', '사용 중인 프로필입니다. 종료하려면 비밀번호 4자리를 입력하세요.'));
+      // 2. 소유권 검증 (등록 기기 식별자와 현재 기기 식별자 일치 여부)
+      var isOwner = u.deviceId === getDeviceSessionId();
+
+      sheet.appendChild(el('p', 'hint', isOwner ? '내가 사용 중인 프로필입니다.' : '다른 사용자가 사용 중인 프로필입니다.'));
       var info = el('div', 'info');
       info.appendChild(el('p', null, '사용자: ' + u.user));
       info.appendChild(el('p', null, clock(u.end) + ' 종료 · ' + remain(u.end) + ' 남음'));
       sheet.appendChild(info);
 
-      var labPin = el('label', 'label', '비밀번호 (PIN 4자리)');
-      labPin.setAttribute('for', 'pinInput');
-      sheet.appendChild(labPin);
-
-      var pinInput = document.createElement('input');
-      pinInput.type = 'password'; pinInput.id = 'pinInput'; pinInput.maxLength = 4;
-      pinInput.placeholder = '비밀번호 4자리 입력'; pinInput.pattern = '[0-9]*'; pinInput.inputMode = 'numeric';
-      sheet.appendChild(pinInput);
-
       var acts = el('div', 'actions');
       var close = el('button', 'btn', '닫기');
       close.addEventListener('click', closeSheet);
-      
-      var end = el('button', 'btn danger', '사용 종료');
-      end.disabled = true;
+      acts.appendChild(close);
 
-      function checkPin() { end.disabled = pinInput.value.length !== 4; }
-      pinInput.addEventListener('input', checkPin);
-
-      end.addEventListener('click', function () {
-        if (pinInput.value === u.pin) {
+      // 3. 타인 보호: 내가 등록한 기기일 때만 [사용 종료] 버튼 노출
+      if (isOwner) {
+        var end = el('button', 'btn danger', '사용 종료');
+        end.addEventListener('click', function () {
           delete state[p];
           saveStateToDB();
           closeSheet();
-        } else {
-          alert('비밀번호가 일치하지 않습니다.');
-          pinInput.value = '';
-          checkPin();
-        }
-      });
+        });
+        acts.appendChild(end);
+      }
 
-      acts.appendChild(close);
-      acts.appendChild(end);
       sheet.appendChild(acts);
     } else {
-      sheet.appendChild(el('p', 'hint', '사용할 시간, 이름, 비밀번호를 입력하세요.'));
+      sheet.appendChild(el('p', 'hint', '사용할 시간과 이름을 입력하세요.'));
       sheet.appendChild(el('span', 'label', '사용 시간'));
       var chips = el('div', 'chips');
       chips.setAttribute('role', 'radiogroup');
@@ -440,13 +436,6 @@
       input.value = lastName();
       sheet.appendChild(input);
 
-      var labPin = el('label', 'label', '종료용 비밀번호 (4자리)'); labPin.setAttribute('for', 'pinRegInput');
-      sheet.appendChild(labPin);
-      var pinRegInput = document.createElement('input');
-      pinRegInput.type = 'password'; pinRegInput.id = 'pinRegInput'; pinRegInput.maxLength = 4;
-      pinRegInput.placeholder = '비밀번호 4자리 설정'; pinRegInput.pattern = '[0-9]*'; pinRegInput.inputMode = 'numeric';
-      sheet.appendChild(pinRegInput);
-
       var acts2 = el('div', 'actions');
       var cancel = el('button', 'btn', '취소');
       cancel.addEventListener('click', closeSheet);
@@ -456,25 +445,24 @@
       sheet.appendChild(acts2);
 
       function check() { 
-        ok.disabled = !(hours && input.value.trim() && pinRegInput.value.length === 4); 
+        ok.disabled = !(hours && input.value.trim()); 
       }
       function submit() {
         var name = input.value.trim();
-        var pin = pinRegInput.value;
-        if (!hours || !name || pin.length !== 4) return;
+        if (!hours || !name) return;
         var now = Date.now();
         state[p] = { 
           user: name, 
           start: now, 
           end: now + hours * 3600000,
-          pin: pin
+          deviceId: getDeviceSessionId() // 등록 시 기기 세션 저장
         };
         saveStateToDB();
         saveName(name);
         closeSheet();
       }
       input.addEventListener('input', check);
-      pinRegInput.addEventListener('input', check);
+      input.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
       ok.addEventListener('click', submit);
       check();
     }
