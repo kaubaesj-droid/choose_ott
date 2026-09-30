@@ -138,12 +138,10 @@
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" id="sheet"></div>
 </div>
 
-<!-- Firebase SDK (ESM 모듈) 불러오기 및 설정 연동 -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  // 요청하신 firebaseConfig 설정 적용
   const firebaseConfig = {
     apiKey: "AIzaSyAHXocwDHnG-U04R37_1sxmVuZi5nDtxV4",
     authDomain: "ott-service-abcc4.firebaseapp.com",
@@ -165,7 +163,6 @@
   let state = {};
   let hours = null;
 
-  // Realtime Database 실시간 데이터 수신
   const stateRef = ref(db, 'ott_state');
   onValue(stateRef, (snapshot) => {
     state = snapshot.val() || {};
