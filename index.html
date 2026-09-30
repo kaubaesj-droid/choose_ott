@@ -230,11 +230,11 @@
     var sum = document.getElementById('summary');
     sum.textContent = '';
     if (freeList.length) {
-      sum.appendChild(document.createTextNode('지금 비어 있는 프로필 ' + freeList.length + '개: '));
+      sum.appendChild(document.createTextNode('지금 사용 가능한 프로필 ' + freeList.length + '개: '));
       sum.appendChild(el('b', null, freeList.join(', ')));
     } else {
       var soonest = Math.min.apply(null, PROFILES.map(function (p) { return usage(p).end; }));
-      sum.appendChild(document.createTextNode('빈 프로필이 없습니다. 가장 빨리 비는 시각은 '));
+      sum.appendChild(document.createTextNode('사용 가능한 프로필이 없습니다. 가장 빨리 사용할 수 있는 시각은 '));
       sum.appendChild(el('b', null, clock(soonest)));
       sum.appendChild(document.createTextNode('입니다.'));
     }
@@ -245,7 +245,7 @@
       var u = usage(p);
       var card = el('button', 'card ' + (u ? 'busy' : 'free'));
       card.appendChild(el('span', 'name', p));
-      card.appendChild(el('span', 'badge', u ? '사용중' : '비어 있음'));
+      card.appendChild(el('span', 'badge', u ? '사용중' : '사용 가능'));
       if (u) {
         card.appendChild(el('span', 'who', u.user));
         var meta = el('span', 'meta', clock(u.end) + ' 종료 · ' + remain(u.end) + ' 남음');
