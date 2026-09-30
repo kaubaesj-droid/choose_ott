@@ -47,7 +47,26 @@
   }
   main { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; }
   h1 { font-size: 1.5rem; margin: 0 0 4px; font-weight: 700; letter-spacing: -0.01em; }
-  .sub { margin: 0 0 20px; color: var(--muted); font-size: .95rem; }
+  .sub { margin: 0 0 16px; color: var(--muted); font-size: .95rem; }
+
+  /* OTT 탭 로고 스타일 */
+  .tabs {
+    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: 0 0 auto; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+    border-radius: 999px; padding: 8px 16px; font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px; transition: all .15s ease;
+  }
+  .tab[aria-selected="true"] {
+    border-color: var(--ink); background: var(--ink); color: var(--bg);
+  }
+  .tab-icon {
+    width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .tab-icon svg { width: 100%; height: 100%; fill: currentColor; }
 
   .summary {
     background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
@@ -65,6 +84,7 @@
   .card:hover { border-color: var(--ink); }
   .card:active { transform: scale(.985); }
   .card .name { font-size: 1.1rem; font-weight: 700; }
+  .card .ott-tag { font-size: .75rem; color: var(--muted); font-weight: 500; margin-top: -2px; }
   .badge {
     align-self: flex-start; font-size: .8rem; font-weight: 600; padding: 2px 10px; border-radius: 999px;
   }
@@ -105,7 +125,7 @@
     padding: 10px 0; font: inherit; font-weight: 500; cursor: pointer;
   }
   .chip[aria-checked="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-  input[type="text"] {
+  input[type="text"], input[type="password"] {
     width: 100%; font: inherit; padding: 12px; border-radius: 10px; border: 1.5px solid var(--line);
     background: var(--bg); color: var(--ink);
   }
@@ -127,7 +147,10 @@
 <body>
 <main>
   <h1>OTT 공유 현황</h1>
-  <p class="sub">프로필을 누르고 시간과 이름을 입력하면 사용중으로 바뀝니다.</p>
+  <p class="sub">OTT를 선택하고 프로필을 눌러 시간과 이름을 입력하면 사용중으로 바뀝니다.</p>
+
+  <!-- OTT 서비스 선택 탭 -->
+  <div class="tabs" id="tabs" role="tablist" aria-label="OTT 서비스 선택"></div>
 
   <div class="summary" id="summary"></div>
   <div class="grid" id="grid"></div>
@@ -156,23 +179,52 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  const PROFILES = ['개리', '고양이', '곤', '기아', '닉', '다람쥐', '덴지', '두산', '레오리오', '레제', '롯데', '루미', '마키마', '머드', '미라', '베이맥스', '부엉이', '옐로우', '올라프', '조이', '진우', '척', '크라피카', '키르아', '키움', '파워', '판다', '한화', 'LG', 'SSG'];
+  // OTT별 아이콘 SVG 정의
+  const LOGOS = {
+    ALL: `<svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>`,
+    NETFLIX: `<svg viewBox="0 0 24 24" fill="#E50914"><path d="M5.398 0v24h4.192V11.213l5.008 12.787h4.004V0h-4.192v12.787L9.402 0z"/></svg>`,
+    DISNEY: `<svg viewBox="0 0 24 24" fill="#113CCF"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-1 14.5v-9l7.5 4.5z"/></svg>`,
+    TVING: `<svg viewBox="0 0 24 24" fill="#FF153C"><circle cx="6" cy="12" r="4"/><circle cx="18" cy="12" r="4"/><path d="M12 6a6 6 0 0 0-6 6h12a6 6 0 0 0-6-6z"/></svg>`,
+    WATCHA: `<svg viewBox="0 0 24 24" fill="#FF0558"><path d="M2 5h20v4H2zm0 5h20v4H2zm0 5h20v4H2z"/></svg>`,
+    ETC: `<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>`
+  };
+
+  // 요청하신 프로필 분류에 맞춘 OTT 그룹 정의
+  const OTT_GROUPS = [
+    { id: 'all', name: '전체', logo: LOGOS.ALL, profiles: [] },
+    { id: 'nf1', name: '넷플1', logo: LOGOS.NETFLIX, profiles: ['크라피카', '곤', '키르아'] },
+    { id: 'nf2', name: '넷플2', logo: LOGOS.NETFLIX, profiles: ['옐로우', '레오리오'] },
+    { id: 'dp', name: '디플', logo: LOGOS.DISNEY, profiles: ['닉', '올라프', '베이맥스', '게리'] },
+    { id: 'tv2', name: '티빙2', logo: LOGOS.TVING, profiles: ['SSG', '기아', '두산', '키움'] },
+    { id: 'tv1', name: '티빙1', logo: LOGOS.TVING, profiles: ['한화', 'LG', '롯데', '삼성'] },
+    { id: 'wc', name: '왓챠', logo: LOGOS.WATCHA, profiles: ['루미', '진우', '조이', '미라'] },
+    { id: 'etc', name: '기타', logo: LOGOS.ETC, profiles: ['개리', '고양이', '다람쥐', '덴지', '레제', '마키마', '머드', '부엉이', '척', '파워', '판다'] }
+  ];
+
+  // 전체 프로필 동적 구성
+  const ALL_PROFILES = [];
+  OTT_GROUPS.forEach(g => {
+    if (g.id !== 'all') {
+      g.profiles.forEach(p => {
+        if (!ALL_PROFILES.includes(p)) ALL_PROFILES.push(p);
+      });
+    }
+  });
+  OTT_GROUPS[0].profiles = ALL_PROFILES;
+
+  function getProfileOtt(p) {
+    for (let i = 1; i < OTT_GROUPS.length; i++) {
+      if (OTT_GROUPS[i].profiles.includes(p)) return OTT_GROUPS[i].name;
+    }
+    return '기타';
+  }
+
   const DURATIONS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4];
   const NAME_KEY = 'ott-board-last-name';
-  const SESSION_KEY = 'ott-board-device-session';
 
+  let currentCategory = 'all';
   let state = {};
   let hours = null;
-
-  // 기기 고유 식별자 생성/가져오기
-  function getDeviceSessionId() {
-    let sid = localStorage.getItem(SESSION_KEY);
-    if (!sid) {
-      sid = 'dev_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
-      localStorage.setItem(SESSION_KEY, sid);
-    }
-    return sid;
-  }
 
   const stateRef = ref(db, 'ott_state');
   onValue(stateRef, (snapshot) => {
@@ -240,27 +292,60 @@
     if (expired) render();
   }
 
+  function renderTabs() {
+    const tabsContainer = document.getElementById('tabs');
+    tabsContainer.textContent = '';
+    OTT_GROUPS.forEach(g => {
+      const btn = el('button', 'tab');
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', currentCategory === g.id ? 'true' : 'false');
+      
+      const iconSpan = el('span', 'tab-icon');
+      iconSpan.innerHTML = g.logo;
+      btn.appendChild(iconSpan);
+      btn.appendChild(document.createTextNode(g.name));
+
+      btn.addEventListener('click', () => {
+        currentCategory = g.id;
+        renderTabs();
+        render();
+      });
+      tabsContainer.appendChild(btn);
+    });
+  }
+
   function render() {
     purge();
-    var freeList = PROFILES.filter(function (p) { return !usage(p); });
+    const activeGroup = OTT_GROUPS.find(g => g.id === currentCategory) || OTT_GROUPS[0];
+    const targetProfiles = activeGroup.profiles;
+
+    var freeList = targetProfiles.filter(function (p) { return !usage(p); });
     var sum = document.getElementById('summary');
     sum.textContent = '';
     if (freeList.length) {
-      sum.appendChild(document.createTextNode('지금 사용 가능한 프로필 ' + freeList.length + '개: '));
+      sum.appendChild(document.createTextNode(`[${activeGroup.name}] 사용 가능한 프로필 ${freeList.length}개: `));
       sum.appendChild(el('b', null, freeList.join(', ')));
     } else {
-      var soonest = Math.min.apply(null, PROFILES.map(function (p) { return usage(p).end; }));
-      sum.appendChild(document.createTextNode('사용 가능한 프로필이 없습니다. 가장 빨리 사용할 수 있는 시각은 '));
-      sum.appendChild(el('b', null, clock(soonest)));
-      sum.appendChild(document.createTextNode('입니다.'));
+      var soonest = Math.min.apply(null, targetProfiles.map(function (p) { return usage(p) ? usage(p).end : Infinity; }));
+      if (soonest !== Infinity) {
+        sum.appendChild(document.createTextNode(`[${activeGroup.name}] 사용 가능한 프로필이 없습니다. 가장 빠른 시각: `));
+        sum.appendChild(el('b', null, clock(soonest)));
+      } else {
+        sum.appendChild(document.createTextNode(`[${activeGroup.name}] 등록된 프로필이 없습니다.`));
+      }
     }
 
     var grid = document.getElementById('grid');
     grid.textContent = '';
-    PROFILES.forEach(function (p) {
+    targetProfiles.forEach(function (p) {
       var u = usage(p);
       var card = el('button', 'card ' + (u ? 'busy' : 'free'));
       card.appendChild(el('span', 'name', p));
+      
+      if (currentCategory === 'all') {
+        card.appendChild(el('span', 'ott-tag', getProfileOtt(p)));
+      }
+
       card.appendChild(el('span', 'badge', u ? '사용중' : '사용 가능'));
       if (u) {
         card.appendChild(el('span', 'who', u.user));
@@ -285,38 +370,53 @@
     sheet.textContent = '';
     var u = usage(p);
 
-    var title = el('h2', null, p);
+    var title = el('h2', null, `${p} (${getProfileOtt(p)})`);
     title.id = 'dlgTitle';
     sheet.appendChild(title);
 
     if (u) {
-      var isOwner = u.deviceId === getDeviceSessionId();
-      
-      sheet.appendChild(el('p', 'hint', isOwner ? '내가 사용 중인 프로필입니다.' : '다른 사용자가 사용 중인 프로필입니다.'));
+      sheet.appendChild(el('p', 'hint', '사용 중인 프로필입니다. 종료하려면 비밀번호 4자리를 입력하세요.'));
       var info = el('div', 'info');
       info.appendChild(el('p', null, '사용자: ' + u.user));
       info.appendChild(el('p', null, clock(u.end) + ' 종료 · ' + remain(u.end) + ' 남음'));
       sheet.appendChild(info);
-      
+
+      var labPin = el('label', 'label', '비밀번호 (PIN 4자리)');
+      labPin.setAttribute('for', 'pinInput');
+      sheet.appendChild(labPin);
+
+      var pinInput = document.createElement('input');
+      pinInput.type = 'password'; pinInput.id = 'pinInput'; pinInput.maxLength = 4;
+      pinInput.placeholder = '비밀번호 4자리 입력'; pinInput.pattern = '[0-9]*'; pinInput.inputMode = 'numeric';
+      sheet.appendChild(pinInput);
+
       var acts = el('div', 'actions');
       var close = el('button', 'btn', '닫기');
       close.addEventListener('click', closeSheet);
-      acts.appendChild(close);
+      
+      var end = el('button', 'btn danger', '사용 종료');
+      end.disabled = true;
 
-      // 내 기기에서 등록한 프로필일 때만 [사용 종료] 버튼 제공
-      if (isOwner) {
-        var end = el('button', 'btn danger', '사용 종료');
-        end.addEventListener('click', function () {
+      function checkPin() { end.disabled = pinInput.value.length !== 4; }
+      pinInput.addEventListener('input', checkPin);
+
+      end.addEventListener('click', function () {
+        if (pinInput.value === u.pin) {
           delete state[p];
           saveStateToDB();
           closeSheet();
-        });
-        acts.appendChild(end);
-      }
-      
+        } else {
+          alert('비밀번호가 일치하지 않습니다.');
+          pinInput.value = '';
+          checkPin();
+        }
+      });
+
+      acts.appendChild(close);
+      acts.appendChild(end);
       sheet.appendChild(acts);
     } else {
-      sheet.appendChild(el('p', 'hint', '사용할 시간과 이름을 입력하세요.'));
+      sheet.appendChild(el('p', 'hint', '사용할 시간, 이름, 비밀번호를 입력하세요.'));
       sheet.appendChild(el('span', 'label', '사용 시간'));
       var chips = el('div', 'chips');
       chips.setAttribute('role', 'radiogroup');
@@ -343,6 +443,13 @@
       input.value = lastName();
       sheet.appendChild(input);
 
+      var labPin = el('label', 'label', '종료용 비밀번호 (4자리)'); labPin.setAttribute('for', 'pinRegInput');
+      sheet.appendChild(labPin);
+      var pinRegInput = document.createElement('input');
+      pinRegInput.type = 'password'; pinRegInput.id = 'pinRegInput'; pinRegInput.maxLength = 4;
+      pinRegInput.placeholder = '비밀번호 4자리 설정'; pinRegInput.pattern = '[0-9]*'; pinRegInput.inputMode = 'numeric';
+      sheet.appendChild(pinRegInput);
+
       var acts2 = el('div', 'actions');
       var cancel = el('button', 'btn', '취소');
       cancel.addEventListener('click', closeSheet);
@@ -351,23 +458,26 @@
       acts2.appendChild(cancel); acts2.appendChild(ok);
       sheet.appendChild(acts2);
 
-      function check() { ok.disabled = !(hours && input.value.trim()); }
+      function check() { 
+        ok.disabled = !(hours && input.value.trim() && pinRegInput.value.length === 4); 
+      }
       function submit() {
         var name = input.value.trim();
-        if (!hours || !name) return;
+        var pin = pinRegInput.value;
+        if (!hours || !name || pin.length !== 4) return;
         var now = Date.now();
         state[p] = { 
           user: name, 
           start: now, 
           end: now + hours * 3600000,
-          deviceId: getDeviceSessionId() // 등록 기기의 고유 식별자 추가
+          pin: pin
         };
         saveStateToDB();
         saveName(name);
         closeSheet();
       }
       input.addEventListener('input', check);
-      input.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+      pinRegInput.addEventListener('input', check);
       ok.addEventListener('click', submit);
       check();
     }
@@ -386,6 +496,7 @@
   });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheet(); });
 
+  renderTabs();
   setInterval(tick, 1000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) render(); });
 </script>
