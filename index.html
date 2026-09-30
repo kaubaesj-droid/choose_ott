@@ -52,7 +52,6 @@
   }
   main { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; }
   
-  /* 헤더 영역 및 다크모드 버튼 스타일 */
   .header-area {
     display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;
   }
@@ -68,7 +67,7 @@
 
   /* OTT 탭 스타일 */
   .tabs {
-    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px;
+    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px;
     -webkit-overflow-scrolling: touch; scrollbar-width: none;
   }
   .tabs::-webkit-scrollbar { display: none; }
@@ -84,6 +83,18 @@
     width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   .tab-icon svg { width: 100%; height: 100%; }
+
+  /* 상태 필터링 칩 스타일 */
+  .filter-bar {
+    display: flex; gap: 6px; margin-bottom: 16px;
+  }
+  .filter-btn {
+    border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+    border-radius: 8px; padding: 4px 10px; font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer;
+  }
+  .filter-btn[aria-checked="true"] {
+    background: var(--line); color: var(--ink); border-color: var(--ink);
+  }
 
   .summary {
     background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
@@ -146,16 +157,18 @@
     width: 100%; font: inherit; padding: 12px; border-radius: 10px; border: 1.5px solid var(--line);
     background: var(--bg); color: var(--ink);
   }
-  .actions { display: flex; gap: 10px; margin-top: 20px; }
+  .actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
   .btn {
     flex: 1; font: inherit; font-weight: 600; padding: 13px; border-radius: 10px; cursor: pointer;
     border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
   }
   .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); flex: 2; }
   .btn.danger { background: var(--busy); border-color: var(--busy); color: #fff; flex: 2; }
+  .btn.extend { background: var(--free-bg); border-color: var(--free); color: var(--free); font-size: .88rem; padding: 10px; }
   .btn:disabled { opacity: .4; cursor: not-allowed; }
   .info { background: var(--busy-bg); color: var(--ink); border-radius: 10px; padding: 12px 14px; }
   .info p { margin: 2px 0; }
+  .extend-group { display: flex; gap: 8px; width: 100%; margin-top: 10px; }
   .note { margin-top: 24px; color: var(--muted); font-size: .82rem; }
 
   :where(button, input):focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
@@ -171,7 +184,15 @@
   </div>
   <p class="sub">OTT를 선택하고 프로필을 눌러 시간과 이름을 입력하면 사용중으로 바뀝니다.</p>
 
+  <!-- OTT 선택 탭 -->
   <div class="tabs" id="tabs" role="tablist" aria-label="OTT 서비스 선택"></div>
+
+  <!-- 상태별 필터링 버튼 (전체 / 사용 가능 / 사용중) -->
+  <div class="filter-bar" id="filterBar">
+    <button type="button" class="filter-btn" data-status="all" aria-checked="true">전체 보기</button>
+    <button type="button" class="filter-btn" data-status="free" aria-checked="false">사용 가능만</button>
+    <button type="button" class="filter-btn" data-status="busy" aria-checked="false">사용중만</button>
+  </div>
 
   <div class="summary" id="summary"></div>
   <div class="grid" id="grid"></div>
@@ -200,7 +221,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // --- 테마(주간/야간 모드) 관리 ---
+  // --- 테마(주간/야간) 관리 ---
   const THEME_KEY = 'ott-board-theme';
   const themeToggleBtn = document.getElementById('themeToggleBtn');
   const themeIcon = document.getElementById('themeIcon');
@@ -229,7 +250,7 @@
 
   applyTheme(getPreferredTheme());
 
-  // --- 로고 및 프로필 그룹 설정 ---
+  // --- 로고 및 OTT 그룹 데이터 ---
   const LOGOS = {
     ALL: `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>`,
     NETFLIX: `<svg viewBox="0 0 24 24" fill="#E50914"><path d="M5.398 0v24h4.192V11.213l5.008 12.787h4.004V0h-4.192v12.787L9.402 0z"/></svg>`,
@@ -272,6 +293,7 @@
   const SESSION_KEY = 'ott-board-device-session';
 
   let currentCategory = 'all';
+  let statusFilter = 'all'; // 'all', 'free', 'busy'
   let state = {};
   let hours = null;
 
@@ -350,6 +372,16 @@
     if (expired) render();
   }
 
+  // 필터링 이벤트 등록
+  document.querySelectorAll('#filterBar .filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#filterBar .filter-btn').forEach(b => b.setAttribute('aria-checked', 'false'));
+      btn.setAttribute('aria-checked', 'true');
+      statusFilter = btn.getAttribute('data-status');
+      render();
+    });
+  });
+
   function renderTabs() {
     const tabsContainer = document.getElementById('tabs');
     tabsContainer.textContent = '';
@@ -375,16 +407,23 @@
   function render() {
     purge();
     const activeGroup = OTT_GROUPS.find(g => g.id === currentCategory) || OTT_GROUPS[0];
-    const targetProfiles = activeGroup.profiles;
+    let targetProfiles = activeGroup.profiles;
 
-    var freeList = targetProfiles.filter(function (p) { return !usage(p); });
+    // 상태 필터링 처리
+    if (statusFilter === 'free') {
+      targetProfiles = targetProfiles.filter(p => !usage(p));
+    } else if (statusFilter === 'busy') {
+      targetProfiles = targetProfiles.filter(p => usage(p));
+    }
+
+    var freeList = activeGroup.profiles.filter(function (p) { return !usage(p); });
     var sum = document.getElementById('summary');
     sum.textContent = '';
     if (freeList.length) {
       sum.appendChild(document.createTextNode(`[${activeGroup.name}] 사용 가능한 프로필 ${freeList.length}개: `));
       sum.appendChild(el('b', null, freeList.join(', ')));
     } else {
-      var soonest = Math.min.apply(null, targetProfiles.map(function (p) { return usage(p) ? usage(p).end : Infinity; }));
+      var soonest = Math.min.apply(null, activeGroup.profiles.map(function (p) { return usage(p) ? usage(p).end : Infinity; }));
       if (soonest !== Infinity) {
         sum.appendChild(document.createTextNode(`[${activeGroup.name}] 사용 가능한 프로필이 없습니다. 가장 빠른 시각: `));
         sum.appendChild(el('b', null, clock(soonest)));
@@ -395,6 +434,16 @@
 
     var grid = document.getElementById('grid');
     grid.textContent = '';
+    
+    if (targetProfiles.length === 0) {
+      var emptyMsg = el('p', 'sub', '해당 조건에 맞는 프로필이 없습니다.');
+      emptyMsg.style.gridColumn = '1 / -1';
+      emptyMsg.style.textAlign = 'center';
+      emptyMsg.style.padding = '20px 0';
+      grid.appendChild(emptyMsg);
+      return;
+    }
+
     targetProfiles.forEach(function (p) {
       var u = usage(p);
       var card = el('button', 'card ' + (u ? 'busy' : 'free'));
@@ -447,16 +496,39 @@
       acts.appendChild(close);
 
       if (isOwner) {
+        // 사용 시간 연장 버튼 그룹 추가 (+30분, +1시간)
+        var extGroup = el('div', 'extend-group');
+        var ext30 = el('button', 'btn extend', '+30분 연장');
+        ext30.addEventListener('click', function () {
+          state[p].end += 30 * 60000;
+          saveStateToDB();
+          openSheet(p);
+        });
+
+        var ext60 = el('button', 'btn extend', '+1시간 연장');
+        ext60.addEventListener('click', function () {
+          state[p].end += 60 * 60000;
+          saveStateToDB();
+          openSheet(p);
+        });
+
+        extGroup.appendChild(ext30);
+        extGroup.appendChild(ext60);
+        
         var end = el('button', 'btn danger', '사용 종료');
         end.addEventListener('click', function () {
           delete state[p];
           saveStateToDB();
           closeSheet();
         });
+
         acts.appendChild(end);
+        sheet.appendChild(acts);
+        sheet.appendChild(extGroup);
+      } else {
+        sheet.appendChild(acts);
       }
 
-      sheet.appendChild(acts);
     } else {
       sheet.appendChild(el('p', 'hint', '사용할 시간과 이름을 입력하세요.'));
       sheet.appendChild(el('span', 'label', '사용 시간'));
