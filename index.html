@@ -227,8 +227,8 @@
   <!-- 불편사항 신고 영역 -->
   <section class="complaint-section">
     <div class="complaint-header">
-      <h2>💬 불편사항 / 문의하기</h2>
-      <button type="button" class="admin-btn" id="openAdminBtn">관리자 보기</button>
+      <h2>불편사항 / 문의하기</h2>
+      <button type="button" class="admin-btn" id="openAdminBtn">조회</button>
     </div>
     <div class="complaint-form">
       <input type="text" id="complaintUser" placeholder="이름 (선택)" maxlength="20">
@@ -730,7 +730,7 @@
     var sheet = document.getElementById('sheet');
     sheet.textContent = '';
 
-    var title = el('h2', null, '📋 불편사항 접수함');
+    var title = el('h2', null, '불편사항 접수함');
     title.id = 'dlgTitle';
     sheet.appendChild(title);
 
