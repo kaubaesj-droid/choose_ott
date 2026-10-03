@@ -696,10 +696,10 @@
     var sheet = document.getElementById('sheet');
     sheet.textContent = '';
 
-    var title = el('h2', null, '🔒 관리자 인증');
+    var title = el('h2', null, '관리자 인증');
     title.id = 'dlgTitle';
     sheet.appendChild(title);
-    sheet.appendChild(el('p', 'hint', '불편사항 조회를 위해 키코드를 입력해 주세요.'));
+    sheet.appendChild(el('p', 'hint', '키코드 입력'));
 
     var input = document.createElement('input');
     input.type = 'password';
