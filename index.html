@@ -1,208 +1,3 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>OTT 공유 현황</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    box-sizing: border-box;
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    --bg: #eceef3;
-    --surface: #ffffff;
-    --ink: #171a24;
-    --muted: #666d80;
-    --line: #d5d9e3;
-    --free: #12805c;
-    --free-bg: #e2f4ec;
-    --busy: #c2381f;
-    --busy-bg: #fbe9e4;
-    --accent: #2b4de0;
-    --accent-ink: #ffffff;
-    --shadow: 0 1px 0 rgba(23,26,36,.06);
-    --overlay: rgba(23,26,36,.5);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #12141b; --surface: #1c1f29; --ink: #eceef5; --muted: #9aa1b5; --line: #2f3443;
-      --free: #4fd1a1; --free-bg: #173328; --busy: #ff8a70; --busy-bg: #3a2019;
-      --accent: #7f97ff; --accent-ink: #10131d; --shadow: none; --overlay: rgba(0,0,0,.65);
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #12141b; --surface: #1c1f29; --ink: #eceef5; --muted: #9aa1b5; --line: #2f3443;
-    --free: #4fd1a1; --free-bg: #173328; --busy: #ff8a70; --busy-bg: #3a2019;
-    --accent: #7f97ff; --accent-ink: #10131d; --shadow: none; --overlay: rgba(0,0,0,.65);
-  }
-  :root[data-theme="light"] {
-    --bg: #eceef3; --surface: #ffffff; --ink: #171a24; --muted: #666d80; --line: #d5d9e3;
-    --free: #12805c; --free-bg: #e2f4ec; --busy: #c2381f; --busy-bg: #fbe9e4;
-    --accent: #2b4de0; --accent-ink: #ffffff; --shadow: 0 1px 0 rgba(23,26,36,.06); --overlay: rgba(23,26,36,.5);
-  }
-  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--ink);
-    font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
-    line-height: 1.5; -webkit-text-size-adjust: 100%;
-  }
-  main { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; }
-  
-  .header-area {
-    display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;
-  }
-  h1 { font-size: 1.5rem; margin: 0; font-weight: 700; letter-spacing: -0.01em; }
-  .theme-toggle-btn {
-    border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
-    border-radius: 999px; padding: 6px 12px; font: inherit; font-size: .85rem; font-weight: 600;
-    cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .15s ease;
-  }
-  .theme-toggle-btn:hover { border-color: var(--ink); }
-
-  .sub { margin: 0 0 16px; color: var(--muted); font-size: .95rem; }
-
-  /* OTT 탭 스타일 */
-  .tabs {
-    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px;
-    -webkit-overflow-scrolling: touch; scrollbar-width: none;
-  }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tab {
-    flex: 0 0 auto; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
-    border-radius: 999px; padding: 8px 16px; font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 8px; transition: all .15s ease;
-  }
-  .tab[aria-selected="true"] {
-    border-color: var(--ink); background: var(--ink); color: var(--bg);
-  }
-  .tab-icon {
-    width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
-  .tab-icon svg { width: 100%; height: 100%; }
-
-  /* 상태 필터링 칩 스타일 */
-  .filter-bar {
-    display: flex; gap: 6px; margin-bottom: 16px;
-  }
-  .filter-btn {
-    border: 1px solid var(--line); background: var(--surface); color: var(--muted);
-    border-radius: 8px; padding: 4px 10px; font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer;
-  }
-  .filter-btn[aria-checked="true"] {
-    background: var(--line); color: var(--ink); border-color: var(--ink);
-  }
-
-  .summary {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
-    padding: 12px 14px; margin-bottom: 16px; font-size: .95rem; box-shadow: var(--shadow);
-  }
-  .summary b { font-weight: 600; }
-
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-  .card {
-    text-align: left; font: inherit; color: inherit; cursor: pointer; width: 100%;
-    background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px;
-    padding: 14px; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow);
-    transition: border-color .15s, transform .1s;
-  }
-  .card:hover { border-color: var(--ink); }
-  .card:active { transform: scale(.985); }
-  .card .name { font-size: 1.1rem; font-weight: 700; }
-  .card .ott-tag { font-size: .75rem; color: var(--muted); font-weight: 500; margin-top: -2px; }
-  .badge {
-    align-self: flex-start; font-size: .8rem; font-weight: 600; padding: 2px 10px; border-radius: 999px;
-  }
-  .card.free .badge { background: var(--free-bg); color: var(--free); }
-  .card.busy .badge { background: var(--busy-bg); color: var(--busy); }
-  .card.busy { border-color: var(--busy); }
-  .who { font-weight: 600; }
-  .meta { color: var(--muted); font-size: .88rem; }
-  .bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; margin-top: 4px; }
-  .bar > i { display: block; height: 100%; background: var(--free); border-radius: 5px; transition: width 1s linear, background-color .4s; }
-  .bar.mid > i { background: #d99a1c; }
-  .bar.low > i { background: var(--busy); }
-  @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
-
-  .overlay {
-    position: fixed; inset: 0; background: var(--overlay); display: none;
-    align-items: flex-end; justify-content: center; z-index: 10;
-  }
-  .overlay.open { display: flex; }
-  .sheet {
-    background: var(--surface); width: 100%; max-width: 480px; border-radius: 18px 18px 0 0;
-    padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px)); max-height: 92vh; overflow-y: auto;
-  }
-  @media (min-width: 600px) {
-    .overlay { align-items: center; }
-    .sheet { border-radius: 18px; }
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .overlay.open .sheet { animation: rise .18s ease-out; }
-    @keyframes rise { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
-  }
-  .sheet h2 { margin: 0 0 2px; font-size: 1.2rem; }
-  .sheet .hint { margin: 0 0 16px; color: var(--muted); font-size: .9rem; }
-  .label { display: block; font-weight: 600; margin: 14px 0 8px; font-size: .95rem; }
-  .chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .chip {
-    border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px;
-    padding: 10px 0; font: inherit; font-weight: 500; cursor: pointer;
-  }
-  .chip[aria-checked="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-  input[type="text"] {
-    width: 100%; font: inherit; padding: 12px; border-radius: 10px; border: 1.5px solid var(--line);
-    background: var(--bg); color: var(--ink);
-  }
-  .actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
-  .btn {
-    flex: 1; font: inherit; font-weight: 600; padding: 13px; border-radius: 10px; cursor: pointer;
-    border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
-  }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); flex: 2; }
-  .btn.danger { background: var(--busy); border-color: var(--busy); color: #fff; flex: 2; }
-  .btn.extend { background: var(--free-bg); border-color: var(--free); color: var(--free); font-size: .88rem; padding: 10px; }
-  .btn:disabled { opacity: .4; cursor: not-allowed; }
-  .info { background: var(--busy-bg); color: var(--ink); border-radius: 10px; padding: 12px 14px; }
-  .info p { margin: 2px 0; }
-  .extend-group { display: flex; gap: 8px; width: 100%; margin-top: 10px; }
-  .note { margin-top: 24px; color: var(--muted); font-size: .82rem; }
-
-  :where(button, input):focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-</style>
-</head>
-<body>
-<main>
-  <div class="header-area">
-    <h1>OTT 공유 현황</h1>
-    <button type="button" class="theme-toggle-btn" id="themeToggleBtn" aria-label="테마 변경">
-      <span id="themeIcon">🌙</span> <span id="themeLabel">야간 모드</span>
-    </button>
-  </div>
-  <p class="sub">OTT를 선택하고 프로필을 눌러 시간과 이름을 입력하면 사용중으로 바뀝니다.</p>
-
-  <!-- OTT 선택 탭 -->
-  <div class="tabs" id="tabs" role="tablist" aria-label="OTT 서비스 선택"></div>
-
-  <!-- 상태별 필터링 버튼 (전체 / 사용 가능 / 사용중) -->
-  <div class="filter-bar" id="filterBar">
-    <button type="button" class="filter-btn" data-status="all" aria-checked="true">전체 보기</button>
-    <button type="button" class="filter-btn" data-status="free" aria-checked="false">사용 가능만</button>
-    <button type="button" class="filter-btn" data-status="busy" aria-checked="false">사용중만</button>
-  </div>
-
-  <div class="summary" id="summary"></div>
-  <div class="grid" id="grid"></div>
-  <p class="note">실시간 데이터베이스와 연결되어 모든 사용자에게 공통으로 공유됩니다.</p>
-</main>
-
-<div class="overlay" id="overlay" aria-hidden="true">
-  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" id="sheet"></div>
-</div>
-
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -224,7 +19,6 @@
   // --- 테마(주간/야간) 관리 ---
   const THEME_KEY = 'ott-board-theme';
   const themeToggleBtn = document.getElementById('themeToggleBtn');
-  const themeIcon = document.getElementById('themeIcon');
   const themeLabel = document.getElementById('themeLabel');
 
   function getPreferredTheme() {
@@ -237,10 +31,8 @@
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
     if (theme === 'dark') {
-      themeIcon.textContent = '☀️';
       themeLabel.textContent = '주간 모드';
     } else {
-      themeIcon.textContent = '🌙';
       themeLabel.textContent = '야간 모드';
     }
   }
@@ -295,7 +87,7 @@
   const SESSION_KEY = 'ott-board-device-session';
 
   let currentCategory = 'all';
-  let statusFilter = 'all'; // 'all', 'free', 'busy'
+  let statusFilter = 'all';
   let state = {};
   let hours = null;
 
@@ -330,6 +122,7 @@
     if (u && u.end > Date.now()) return u;
     return null;
   }
+
   function purge() {
     var changed = false;
     Object.keys(state).forEach(function (k) {
@@ -337,6 +130,7 @@
     });
     if (changed) saveStateToDB();
   }
+
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
   function clock(ms) { var d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
   function remain(ms) {
@@ -363,6 +157,7 @@
     bar.className = 'bar live-bar' + (pct <= 15 ? ' low' : pct <= 40 ? ' mid' : '');
     meta.textContent = clock(u.end) + ' 종료 · ' + remain(u.end) + ' 남음';
   }
+
   function tick() {
     var expired = false;
     Array.prototype.forEach.call(document.querySelectorAll('.card.busy'), function (card) {
@@ -374,7 +169,6 @@
     if (expired) render();
   }
 
-  // 필터링 이벤트 등록
   document.querySelectorAll('#filterBar .filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('#filterBar .filter-btn').forEach(b => b.setAttribute('aria-checked', 'false'));
@@ -411,7 +205,6 @@
     const activeGroup = OTT_GROUPS.find(g => g.id === currentCategory) || OTT_GROUPS[0];
     let targetProfiles = activeGroup.profiles;
 
-    // 상태 필터링 처리
     if (statusFilter === 'free') {
       targetProfiles = targetProfiles.filter(p => !usage(p));
     } else if (statusFilter === 'busy') {
@@ -498,7 +291,6 @@
       acts.appendChild(close);
 
       if (isOwner) {
-        // 사용 시간 연장 버튼 그룹 추가 (+30분, +1시간)
         var extGroup = el('div', 'extend-group');
         var ext30 = el('button', 'btn extend', '+30분 연장');
         ext30.addEventListener('click', function () {
@@ -570,20 +362,37 @@
       function check() { 
         ok.disabled = !(hours && input.value.trim()); 
       }
+
       function submit() {
         var name = input.value.trim();
         if (!hours || !name) return;
+
+        var currentDeviceId = getDeviceSessionId();
+
+        // 중복 사용 체크: 현재 기기 세션 ID 또는 입력된 사용자의 이름이 이미 활성화된 프로필에 사용 중인지 확인
+        var existingProfile = Object.keys(state).find(function (key) {
+          var u = usage(key);
+          if (!u) return false;
+          return u.deviceId === currentDeviceId || u.user.toLowerCase() === name.toLowerCase();
+        });
+
+        if (existingProfile) {
+          alert("이미 '" + existingProfile + "' 프로필을 사용 중입니다.\n한 사람당 하나의 계정만 등록할 수 있습니다.");
+          return;
+        }
+
         var now = Date.now();
         state[p] = { 
           user: name, 
           start: now, 
           end: now + hours * 3600000,
-          deviceId: getDeviceSessionId()
+          deviceId: currentDeviceId
         };
         saveStateToDB();
         saveName(name);
         closeSheet();
       }
+
       input.addEventListener('input', check);
       input.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
       ok.addEventListener('click', submit);
@@ -608,5 +417,3 @@
   setInterval(tick, 1000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) render(); });
 </script>
-</body>
-</html>
