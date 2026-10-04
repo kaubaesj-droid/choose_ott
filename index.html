@@ -1079,6 +1079,35 @@
     var ov = document.getElementById('overlay');
     ov.classList.add('open'); ov.setAttribute('aria-hidden', 'false');
   }
+  <!-- 하단 만든이 푸터 -->
+  <footer>
+    Made with ♡ by <span>배성진</span>
+  </footer>
+</main>
+
+<div class="overlay" id="overlay" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" id="sheet"></div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAHXocwDHnG-U04R37_1sxmVuZi5nDtxV4",
+    authDomain: "ott-service-abcc4.firebaseapp.com",
+    databaseURL: "https://ott-service-abcc4-default-rtdb.firebaseio.com",
+    projectId: "ott-service-abcc4",
+    storageBucket: "ott-service-abcc4.firebasestorage.app",
+    messagingSenderId: "320511435378",
+    appId: "1:320511435378:web:d99f89dea5324c658618eb",
+    measurementId: "G-SF2M0TX2WT"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const ADMIN_KEY = "1234";
 
   function openComplaintsListSheet() {
     var sheet = document.getElementById('sheet');
