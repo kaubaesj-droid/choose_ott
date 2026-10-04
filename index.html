@@ -6,198 +6,565 @@
 <title>OTT 공유 현황</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     box-sizing: border-box;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    --bg: #eceef3;
+    
+    /* Minimalist Light Palette */
+    --bg: #f8f9fa;
     --surface: #ffffff;
-    --ink: #171a24;
-    --muted: #666d80;
-    --line: #d5d9e3;
-    --free: #12805c;
-    --free-bg: #e2f4ec;
-    --busy: #c2381f;
-    --busy-bg: #fbe9e4;
-    --accent: #2b4de0;
+    --surface-sub: #f1f3f5;
+    --ink: #111827;
+    --muted: #6b7280;
+    --subtle: #9ca3af;
+    --line: #e5e7eb;
+    
+    --free: #10b981;
+    --free-bg: #ecfdf5;
+    --busy: #f43f5e;
+    --busy-bg: #fff1f2;
+    --accent: #111827;
     --accent-ink: #ffffff;
-    --shadow: 0 1px 0 rgba(23,26,36,.06);
-    --overlay: rgba(23,26,36,.5);
+    
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    --overlay: rgba(17, 24, 39, 0.4);
   }
+
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #12141b; --surface: #1c1f29; --ink: #eceef5; --muted: #9aa1b5; --line: #2f3443;
-      --free: #4fd1a1; --free-bg: #173328; --busy: #ff8a70; --busy-bg: #3a2019;
-      --accent: #7f97ff; --accent-ink: #10131d; --shadow: none; --overlay: rgba(0,0,0,.65);
+      --bg: #0f1117;
+      --surface: #181b24;
+      --surface-sub: #222634;
+      --ink: #f9fafb;
+      --muted: #9ca3af;
+      --subtle: #6b7280;
+      --line: #2a2f3d;
+      
+      --free: #34d399;
+      --free-bg: rgba(52, 211, 153, 0.12);
+      --busy: #fb7185;
+      --busy-bg: rgba(251, 113, 133, 0.12);
+      --accent: #f9fafb;
+      --accent-ink: #0f1117;
+      
+      --shadow-sm: none;
+      --shadow-md: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+      --overlay: rgba(0, 0, 0, 0.7);
     }
   }
+
   :root[data-theme="dark"] {
-    --bg: #12141b; --surface: #1c1f29; --ink: #eceef5; --muted: #9aa1b5; --line: #2f3443;
-    --free: #4fd1a1; --free-bg: #173328; --busy: #ff8a70; --busy-bg: #3a2019;
-    --accent: #7f97ff; --accent-ink: #10131d; --shadow: none; --overlay: rgba(0,0,0,.65);
+    --bg: #0f1117;
+    --surface: #181b24;
+    --surface-sub: #222634;
+    --ink: #f9fafb;
+    --muted: #9ca3af;
+    --subtle: #6b7280;
+    --line: #2a2f3d;
+    
+    --free: #34d399;
+    --free-bg: rgba(52, 211, 153, 0.12);
+    --busy: #fb7185;
+    --busy-bg: rgba(251, 113, 133, 0.12);
+    --accent: #f9fafb;
+    --accent-ink: #0f1117;
+    
+    --shadow-sm: none;
+    --shadow-md: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    --overlay: rgba(0, 0, 0, 0.7);
   }
+
   :root[data-theme="light"] {
-    --bg: #eceef3; --surface: #ffffff; --ink: #171a24; --muted: #666d80; --line: #d5d9e3;
-    --free: #12805c; --free-bg: #e2f4ec; --busy: #c2381f; --busy-bg: #fbe9e4;
-    --accent: #2b4de0; --accent-ink: #ffffff; --shadow: 0 1px 0 rgba(23,26,36,.06); --overlay: rgba(23,26,36,.5);
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --surface-sub: #f1f3f5;
+    --ink: #111827;
+    --muted: #6b7280;
+    --subtle: #9ca3af;
+    --line: #e5e7eb;
+    
+    --free: #10b981;
+    --free-bg: #ecfdf5;
+    --busy: #f43f5e;
+    --busy-bg: #fff1f2;
+    --accent: #111827;
+    --accent-ink: #ffffff;
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    --overlay: rgba(17, 24, 39, 0.4);
   }
-  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--ink);
-    font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
-    line-height: 1.5; -webkit-text-size-adjust: 100%;
-  }
-  main { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Plus Jakarta Sans", "Pretendard", system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+    letter-spacing: -0.011em;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  main {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 32px 20px 64px;
+  }
+
+  /* Header Section */
   .header-area {
-    display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
   }
-  h1 { font-size: 1.5rem; margin: 0; font-weight: 700; letter-spacing: -0.01em; }
+  
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+
   .theme-toggle-btn {
-    border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
-    border-radius: 999px; padding: 6px 12px; font: inherit; font-size: .85rem; font-weight: 600;
-    cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .15s ease;
+    border: none;
+    background: var(--surface-sub);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
   }
-  .theme-toggle-btn:hover { border-color: var(--ink); }
+  
+  .theme-toggle-btn:hover {
+    opacity: 0.8;
+  }
 
-  .sub { margin: 0 0 16px; color: var(--muted); font-size: .95rem; }
+  .sub {
+    margin: 0 0 24px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 400;
+  }
 
-  /* OTT 탭 스타일 */
+  /* OTT Tabs */
   .tabs {
-    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px;
-    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 12px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
   .tabs::-webkit-scrollbar { display: none; }
+  
   .tab {
-    flex: 0 0 auto; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
-    border-radius: 999px; padding: 8px 16px; font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 8px; transition: all .15s ease;
+    flex: 0 0 auto;
+    border: 1px solid transparent;
+    background: var(--surface);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
+  
+  .tab:hover {
+    color: var(--ink);
+  }
+
   .tab[aria-selected="true"] {
-    border-color: var(--ink); background: var(--ink); color: var(--bg);
+    background: var(--accent);
+    color: var(--accent-ink);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
+  
   .tab-icon {
-    width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
   .tab-icon svg { width: 100%; height: 100%; }
 
-  /* 상태 필터링 칩 스타일 */
+  /* Filter Segmented Control */
   .filter-bar {
-    display: flex; gap: 6px; margin-bottom: 16px;
+    display: inline-flex;
+    background: var(--surface-sub);
+    padding: 3px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    gap: 2px;
   }
+  
   .filter-btn {
-    border: 1px solid var(--line); background: var(--surface); color: var(--muted);
-    border-radius: 8px; padding: 4px 10px; font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    border-radius: 9px;
+    padding: 6px 14px;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
   }
+  
   .filter-btn[aria-checked="true"] {
-    background: var(--line); color: var(--ink); border-color: var(--ink);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow-sm);
   }
 
+  /* Summary Card */
   .summary {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
-    padding: 12px 14px; margin-bottom: 16px; font-size: .95rem; box-shadow: var(--shadow);
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    box-shadow: var(--shadow-sm);
   }
-  .summary b { font-weight: 600; }
+  .summary b {
+    color: var(--ink);
+    font-weight: 600;
+  }
 
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  /* Grid Layout & Profile Cards */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  
   .card {
-    text-align: left; font: inherit; color: inherit; cursor: pointer; width: 100%;
-    background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px;
-    padding: 14px; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow);
-    transition: border-color .15s, transform .1s;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
   }
-  .card:hover { border-color: var(--ink); }
-  .card:active { transform: scale(.985); }
-  .card .name { font-size: 1.1rem; font-weight: 700; }
-  .card .ott-tag { font-size: .75rem; color: var(--muted); font-weight: 500; margin-top: -2px; }
-  .badge {
-    align-self: flex-start; font-size: .8rem; font-weight: 600; padding: 2px 10px; border-radius: 999px;
+  
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: transparent;
   }
-  .card.free .badge { background: var(--free-bg); color: var(--free); }
-  .card.busy .badge { background: var(--busy-bg); color: var(--busy); }
-  .card.busy { border-color: var(--busy); }
-  .who { font-weight: 600; }
-  .meta { color: var(--muted); font-size: .88rem; }
-  .bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; margin-top: 4px; }
-  .bar > i { display: block; height: 100%; background: var(--free); border-radius: 5px; transition: width 1s linear, background-color .4s; }
-  .bar.mid > i { background: #d99a1c; }
-  .bar.low > i { background: var(--busy); }
-  @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+  .card:active { transform: scale(0.98); }
 
-  .overlay {
-    position: fixed; inset: 0; background: var(--overlay); display: none;
-    align-items: flex-end; justify-content: center; z-index: 10;
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
-  .overlay.open { display: flex; }
-  .sheet {
-    background: var(--surface); width: 100%; max-width: 480px; border-radius: 18px 18px 0 0;
-    padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px)); max-height: 92vh; overflow-y: auto;
+
+  .card .name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
-  @media (min-width: 600px) {
-    .overlay { align-items: center; }
-    .sheet { border-radius: 18px; }
+  
+  .card .ott-tag {
+    font-size: 0.75rem;
+    color: var(--subtle);
+    font-weight: 500;
   }
-  @media (prefers-reduced-motion: no-preference) {
-    .overlay.open .sheet { animation: rise .18s ease-out; }
-    @keyframes rise { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  /* Dot Status Badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    width: fit-content;
   }
-  .sheet h2 { margin: 0 0 2px; font-size: 1.2rem; }
-  .sheet .hint { margin: 0 0 16px; color: var(--muted); font-size: .9rem; }
-  .label { display: block; font-weight: 600; margin: 14px 0 8px; font-size: .95rem; }
-  .chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .chip {
-    border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px;
-    padding: 10px 0; font: inherit; font-weight: 500; cursor: pointer;
+  .badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
   }
-  .chip[aria-checked="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+  .card.free .badge {
+    background: var(--free-bg);
+    color: var(--free);
+  }
+  .card.free .badge::before { background: var(--free); }
+
+  .card.busy .badge {
+    background: var(--busy-bg);
+    color: var(--busy);
+  }
+  .card.busy .badge::before { background: var(--busy); }
+
+  .who {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  
+  .meta {
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .bar {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--surface-sub);
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .bar > i {
+    display: block;
+    height: 100%;
+    background: var(--free);
+    border-radius: 999px;
+    transition: width 1s linear, background-color 0.3s;
+  }
+  .bar.mid > i { background: #f59e0b; }
+  .bar.low > i { background: var(--busy); }
+
+  .note {
+    margin-top: 24px;
+    color: var(--subtle);
+    font-size: 0.8rem;
+    text-align: center;
+  }
+
+  /* Complaint Section */
+  .complaint-section {
+    margin-top: 48px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+  
+  .complaint-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .complaint-header h2 {
+    font-size: 1.05rem;
+    margin: 0;
+    font-weight: 700;
+  }
+  
+  .admin-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .admin-btn:hover { background: var(--surface-sub); }
+
+  .complaint-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .complaint-item {
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+  }
+  .complaint-item .c-user { font-weight: 600; font-size: 0.9rem; }
+  .complaint-item .c-date { font-size: 0.75rem; color: var(--subtle); margin-left: 6px; }
+  .complaint-item .c-text { font-size: 0.88rem; margin-top: 6px; color: var(--muted); white-space: pre-wrap; }
+  .complaint-item .c-del {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    background: none;
+    border: none;
+    color: var(--busy);
+    font-size: 0.78rem;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  /* Form Controls */
   input[type="text"], input[type="password"], textarea {
-    width: 100%; font: inherit; padding: 12px; border-radius: 10px; border: 1.5px solid var(--line);
-    background: var(--bg); color: var(--ink);
+    width: 100%;
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    transition: all 0.2s ease;
+  }
+  input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
+    outline: none;
+    border-color: var(--ink);
   }
   textarea { resize: vertical; min-height: 80px; }
-  .actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+
+  /* Sheet & Modal Overlay */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .overlay.open {
+    display: flex;
+    opacity: 1;
+  }
+
+  .sheet {
+    background: var(--surface);
+    width: 100%;
+    max-width: 440px;
+    border-radius: 24px 24px 0 0;
+    padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+    max-height: 88vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-md);
+    transform: translateY(20px);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .overlay.open .sheet {
+    transform: translateY(0);
+  }
+
+  @media (min-width: 600px) {
+    .overlay { align-items: center; padding: 20px; }
+    .sheet { border-radius: 24px; }
+  }
+
+  .sheet h2 { margin: 0 0 4px; font-size: 1.2rem; font-weight: 700; }
+  .sheet .hint { margin: 0 0 18px; color: var(--muted); font-size: 0.88rem; }
+  .label { display: block; font-weight: 600; margin: 16px 0 8px; font-size: 0.88rem; }
+
+  /* Duration Chips */
+  .chips {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .chip {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    border-radius: var(--radius-sm);
+    padding: 10px 0;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .chip[aria-checked="true"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  /* Buttons */
+  .actions { display: flex; gap: 8px; margin-top: 24px; }
   .btn {
-    flex: 1; font: inherit; font-weight: 600; padding: 13px; border-radius: 10px; cursor: pointer;
-    border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+    flex: 1;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    border: 1px solid var(--line);
+    background: var(--surface-sub);
+    color: var(--ink);
+    transition: all 0.15s ease;
   }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); flex: 2; }
-  .btn.danger { background: var(--busy); border-color: var(--busy); color: #fff; flex: 2; }
-  .btn.extend { background: var(--free-bg); border-color: var(--free); color: var(--free); font-size: .88rem; padding: 10px; }
-  .btn:disabled { opacity: .4; cursor: not-allowed; }
-  .info { background: var(--busy-bg); color: var(--ink); border-radius: 10px; padding: 12px 14px; }
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+    flex: 2;
+  }
+  .btn.danger {
+    background: var(--busy-bg);
+    border-color: transparent;
+    color: var(--busy);
+    flex: 2;
+  }
+  .btn.extend {
+    background: var(--free-bg);
+    border-color: transparent;
+    color: var(--free);
+    font-size: 0.85rem;
+    padding: 10px;
+  }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .info {
+    background: var(--surface-sub);
+    color: var(--ink);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    font-size: 0.9rem;
+  }
   .info p { margin: 2px 0; }
-  .extend-group { display: flex; gap: 8px; width: 100%; margin-top: 10px; }
-  .note { margin-top: 24px; color: var(--muted); font-size: .82rem; }
+  .extend-group { display: flex; gap: 8px; width: 100%; margin-top: 8px; }
 
-  /* 불편사항 접수 영역 스타일 */
-  .complaint-section {
-    margin-top: 40px; padding-top: 20px; border-top: 1.5px dashed var(--line);
+  :where(button, input, textarea):focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
   }
-  .complaint-header {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
-  }
-  .complaint-header h2 { font-size: 1.1rem; margin: 0; font-weight: 700; }
-  .admin-btn {
-    background: none; border: none; color: var(--muted); font-size: .82rem;
-    text-decoration: underline; cursor: pointer; padding: 4px;
-  }
-  .complaint-form { display: flex; flex-direction: column; gap: 10px; }
-  .complaint-item {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
-    padding: 12px; margin-bottom: 10px; position: relative;
-  }
-  .complaint-item .c-user { font-weight: 700; font-size: .95rem; color: var(--ink); }
-  .complaint-item .c-date { font-size: .75rem; color: var(--muted); margin-left: 6px; }
-  .complaint-item .c-text { font-size: .9rem; margin-top: 6px; white-space: pre-wrap; }
-  .complaint-item .c-del {
-    position: absolute; top: 10px; right: 10px; background: none; border: none;
-    color: var(--busy); font-size: .8rem; cursor: pointer; font-weight: 600;
-  }
-
-  :where(button, input, textarea):focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -208,16 +575,16 @@
       <span id="themeLabel">야간 모드</span>
     </button>
   </div>
-  <p class="sub">OTT를 선택하고 프로필을 눌러 시간과 이름을 입력하면 사용중으로 바뀝니다.</p>
+  <p class="sub">프로필을 눌러 시간과 이름을 입력하면 즉시 등록됩니다.</p>
 
   <!-- OTT 선택 탭 -->
   <div class="tabs" id="tabs" role="tablist" aria-label="OTT 서비스 선택"></div>
 
-  <!-- 상태별 필터링 버튼 (전체 / 사용 가능 / 사용중) -->
+  <!-- 상태별 필터링 버튼 -->
   <div class="filter-bar" id="filterBar">
-    <button type="button" class="filter-btn" data-status="all" aria-checked="true">전체 보기</button>
-    <button type="button" class="filter-btn" data-status="free" aria-checked="false">사용 가능만</button>
-    <button type="button" class="filter-btn" data-status="busy" aria-checked="false">사용중만</button>
+    <button type="button" class="filter-btn" data-status="all" aria-checked="true">전체</button>
+    <button type="button" class="filter-btn" data-status="free" aria-checked="false">사용 가능</button>
+    <button type="button" class="filter-btn" data-status="busy" aria-checked="false">사용 중</button>
   </div>
 
   <div class="summary" id="summary"></div>
@@ -228,7 +595,7 @@
   <section class="complaint-section">
     <div class="complaint-header">
       <h2>불편사항 / 문의하기</h2>
-      <button type="button" class="admin-btn" id="openAdminBtn">조회</button>
+      <button type="button" class="admin-btn" id="openAdminBtn">조회하기</button>
     </div>
     <div class="complaint-form">
       <input type="text" id="complaintUser" placeholder="이름 (선택)" maxlength="20">
@@ -260,10 +627,9 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // --- 관리자 비밀번호 (키코드) 설정 ---
-  const ADMIN_KEY = "1234"; // 원하시는 키코드로 변경해 사용하세요.
+  const ADMIN_KEY = "1234";
 
-  // --- 테마(주간/야간) 관리 ---
+  /* 테마 관리 */
   const THEME_KEY = 'ott-board-theme';
   const themeToggleBtn = document.getElementById('themeToggleBtn');
   const themeLabel = document.getElementById('themeLabel');
@@ -277,11 +643,7 @@
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
-    if (theme === 'dark') {
-      themeLabel.textContent = '주간 모드';
-    } else {
-      themeLabel.textContent = '야간 모드';
-    }
+    themeLabel.textContent = theme === 'dark' ? '주간 모드' : '야간 모드';
   }
 
   themeToggleBtn.addEventListener('click', () => {
@@ -291,7 +653,7 @@
 
   applyTheme(getPreferredTheme());
 
-  // --- 로고 및 OTT 그룹 데이터 ---
+  /* 서비스 로고 및 아이콘 */
   const LOGOS = {
     ALL: `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>`,
     NETFLIX: `<svg viewBox="0 0 24 24" fill="#E50914"><path d="M5.398 0v24h4.192V11.213l5.008 12.787h4.004V0h-4.192v12.787L9.402 0z"/></svg>`,
@@ -359,16 +721,9 @@
     complaintsData = snapshot.val() || {};
   });
 
-  function saveStateToDB() {
-    set(ref(db, 'ott_state'), state);
-  }
-
-  function lastName() {
-    try { return localStorage.getItem(NAME_KEY) || ''; } catch (e) { return ''; }
-  }
-  function saveName(n) {
-    try { localStorage.setItem(NAME_KEY, n); } catch (e) {}
-  }
+  function saveStateToDB() { set(ref(db, 'ott_state'), state); }
+  function lastName() { try { return localStorage.getItem(NAME_KEY) || ''; } catch (e) { return ''; } }
+  function saveName(n) { try { localStorage.setItem(NAME_KEY, n); } catch (e) {} }
 
   function usage(p) {
     var u = state[p];
@@ -412,7 +767,7 @@
     var pct = Math.max(0, Math.min(100, ((u.end - Date.now()) / (u.end - u.start)) * 100));
     fill.style.width = pct + '%';
     bar.className = 'bar live-bar' + (pct <= 15 ? ' low' : pct <= 40 ? ' mid' : '');
-    meta.textContent = clock(u.end) + ' 종료 · ' + remain(u.end) + ' 남음';
+    meta.textContent = clock(u.end) + ' 종료 (' + remain(u.end) + ' 남음)';
   }
 
   function tick() {
@@ -472,15 +827,15 @@
     var sum = document.getElementById('summary');
     sum.textContent = '';
     if (freeList.length) {
-      sum.appendChild(document.createTextNode(`[${activeGroup.name}] 사용 가능한 프로필 ${freeList.length}개: `));
+      sum.appendChild(document.createTextNode(`사용 가능 프로필 ${freeList.length}개: `));
       sum.appendChild(el('b', null, freeList.join(', ')));
     } else {
       var soonest = Math.min.apply(null, activeGroup.profiles.map(function (p) { return usage(p) ? usage(p).end : Infinity; }));
       if (soonest !== Infinity) {
-        sum.appendChild(document.createTextNode(`[${activeGroup.name}] 사용 가능한 프로필이 없습니다. 가장 빠른 시각: `));
+        sum.appendChild(document.createTextNode(`사용 가능한 프로필이 없습니다. 가장 빠른 시각: `));
         sum.appendChild(el('b', null, clock(soonest)));
       } else {
-        sum.appendChild(document.createTextNode(`[${activeGroup.name}] 등록된 프로필이 없습니다.`));
+        sum.appendChild(document.createTextNode(`등록된 프로필이 없습니다.`));
       }
     }
 
@@ -491,7 +846,7 @@
       var emptyMsg = el('p', 'sub', '해당 조건에 맞는 프로필이 없습니다.');
       emptyMsg.style.gridColumn = '1 / -1';
       emptyMsg.style.textAlign = 'center';
-      emptyMsg.style.padding = '20px 0';
+      emptyMsg.style.padding = '32px 0';
       grid.appendChild(emptyMsg);
       return;
     }
@@ -499,24 +854,26 @@
     targetProfiles.forEach(function (p) {
       var u = usage(p);
       var card = el('button', 'card ' + (u ? 'busy' : 'free'));
-      card.appendChild(el('span', 'name', p));
       
+      var cardTop = el('div', 'card-top');
+      cardTop.appendChild(el('span', 'name', p));
       if (currentCategory === 'all') {
-        card.appendChild(el('span', 'ott-tag', getProfileOtt(p)));
+        cardTop.appendChild(el('span', 'ott-tag', getProfileOtt(p)));
       }
+      card.appendChild(cardTop);
 
-      card.appendChild(el('span', 'badge', u ? '사용중' : '사용 가능'));
+      card.appendChild(el('span', 'badge', u ? '사용 중' : '사용 가능'));
+      
       if (u) {
         card.appendChild(el('span', 'who', u.user));
-        var meta = el('span', 'meta', clock(u.end) + ' 종료 · ' + remain(u.end) + ' 남음');
-        meta.className = 'meta live-meta';
+        var meta = el('span', 'meta live-meta', clock(u.end) + ' 종료 (' + remain(u.end) + ' 남음)');
         card.appendChild(meta);
         var bar = el('span', 'bar live-bar'); var fill = document.createElement('i');
         bar.appendChild(fill); card.appendChild(bar);
         card.setAttribute('data-p', p);
         paint(u, meta, bar, fill);
       } else {
-        card.appendChild(el('span', 'meta', '눌러서 사용 시간 선택'));
+        card.appendChild(el('span', 'meta', '눌러서 사용 신청'));
       }
       card.addEventListener('click', function () { openSheet(p); });
       grid.appendChild(card);
@@ -539,7 +896,7 @@
       sheet.appendChild(el('p', 'hint', isOwner ? '내가 사용 중인 프로필입니다.' : '다른 사용자가 사용 중인 프로필입니다.'));
       var info = el('div', 'info');
       info.appendChild(el('p', null, '사용자: ' + u.user));
-      info.appendChild(el('p', null, clock(u.end) + ' 종료 · ' + remain(u.end) + ' 남음'));
+      info.appendChild(el('p', null, clock(u.end) + ' 종료 (' + remain(u.end) + ' 남음)'));
       sheet.appendChild(info);
 
       var acts = el('div', 'actions');
@@ -611,7 +968,7 @@
       var acts2 = el('div', 'actions');
       var cancel = el('button', 'btn', '취소');
       cancel.addEventListener('click', closeSheet);
-      var ok = el('button', 'btn primary', '입력');
+      var ok = el('button', 'btn primary', '확인');
       ok.disabled = true;
       acts2.appendChild(cancel); acts2.appendChild(ok);
       sheet.appendChild(acts2);
@@ -626,7 +983,6 @@
 
         var currentDeviceId = getDeviceSessionId();
 
-        // 1인 1계정 중복 검사
         var existingProfile = Object.keys(state).find(function (key) {
           var u = usage(key);
           if (!u) return false;
@@ -665,7 +1021,7 @@
     ov.classList.remove('open'); ov.setAttribute('aria-hidden', 'true');
   }
 
-  // --- 불편사항 작성 로직 ---
+  /* 불편사항 접수 */
   document.getElementById('submitComplaintBtn').addEventListener('click', () => {
     const user = document.getElementById('complaintUser').value.trim() || '익명';
     const text = document.getElementById('complaintText').value.trim();
@@ -687,10 +1043,8 @@
     });
   });
 
-  // --- 관리자 모드 (키코드 입력 모달) ---
-  document.getElementById('openAdminBtn').addEventListener('click', () => {
-    openAdminKeySheet();
-  });
+  /* 관리자 모드 */
+  document.getElementById('openAdminBtn').addEventListener('click', () => { openAdminKeySheet(); });
 
   function openAdminKeySheet() {
     var sheet = document.getElementById('sheet');
@@ -702,7 +1056,7 @@
 
     var input = document.createElement('input');
     input.type = 'password';
-    input.placeholder = '키코드 입력';
+    input.placeholder = '비밀키 입력';
     sheet.appendChild(input);
 
     var acts = el('div', 'actions');
@@ -730,7 +1084,7 @@
     var sheet = document.getElementById('sheet');
     sheet.textContent = '';
 
-    var title = el('h2', null, '불편사항 접수함');
+    var title = el('h2', null, '접수된 불편사항');
     title.id = 'dlgTitle';
     sheet.appendChild(title);
 
@@ -738,9 +1092,7 @@
     if (keys.length === 0) {
       sheet.appendChild(el('p', 'hint', '접수된 불편사항이 없습니다.'));
     } else {
-      sheet.appendChild(el('p', 'hint', `총 ${keys.length}건의 메시지가 있습니다.`));
-
-      // 최신순 정렬
+      sheet.appendChild(el('p', 'hint', `총 ${keys.length}건의 메시지`));
       keys.sort((a, b) => complaintsData[b].timestamp - complaintsData[a].timestamp);
 
       keys.forEach(key => {
