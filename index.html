@@ -118,7 +118,7 @@
   main {
     max-width: 680px;
     margin: 0 auto;
-    padding: 32px 20px 64px;
+    padding: 32px 20px 32px;
   }
 
   /* Header Section */
@@ -430,6 +430,21 @@
     font-weight: 600;
   }
 
+  /* Footer Section */
+  footer {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--subtle);
+    font-weight: 500;
+  }
+  footer span {
+    font-weight: 600;
+    color: var(--muted);
+  }
+
   /* Form Controls */
   input[type="text"], input[type="password"], textarea {
     width: 100%;
@@ -575,7 +590,7 @@
       <span id="themeLabel">야간 모드</span>
     </button>
   </div>
-  <p class="sub">프로필을 눌러 시간과 이름을 입력한 후 사용하시길 바랍니다.</p>
+  <p class="sub">프로필을 눌러 시간과 이름을 입력하면 즉시 등록됩니다.</p>
 
   <!-- OTT 선택 탭 -->
   <div class="tabs" id="tabs" role="tablist" aria-label="OTT 서비스 선택"></div>
@@ -603,6 +618,11 @@
       <button type="button" class="btn primary" id="submitComplaintBtn">접수하기</button>
     </div>
   </section>
+
+  <!-- 하단 만든이 푸터 -->
+  <footer>
+    Made with ♡ by <span>배성진</span>
+  </footer>
 </main>
 
 <div class="overlay" id="overlay" aria-hidden="true">
@@ -1079,35 +1099,6 @@
     var ov = document.getElementById('overlay');
     ov.classList.add('open'); ov.setAttribute('aria-hidden', 'false');
   }
-  <!-- 하단 만든이 푸터 -->
-  <footer>
-    Made with ♡ by <span>배성진</span>
-  </footer>
-</main>
-
-<div class="overlay" id="overlay" aria-hidden="true">
-  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" id="sheet"></div>
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getDatabase, ref, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAHXocwDHnG-U04R37_1sxmVuZi5nDtxV4",
-    authDomain: "ott-service-abcc4.firebaseapp.com",
-    databaseURL: "https://ott-service-abcc4-default-rtdb.firebaseio.com",
-    projectId: "ott-service-abcc4",
-    storageBucket: "ott-service-abcc4.firebasestorage.app",
-    messagingSenderId: "320511435378",
-    appId: "1:320511435378:web:d99f89dea5324c658618eb",
-    measurementId: "G-SF2M0TX2WT"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  const ADMIN_KEY = "1234";
 
   function openComplaintsListSheet() {
     var sheet = document.getElementById('sheet');
